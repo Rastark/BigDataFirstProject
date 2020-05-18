@@ -1,16 +1,16 @@
 package mapreduce;
 
-import mapreduce.job.SectorJob;
+import mapreduce.job.MapJoinJob;
 
 /**
- * Launches SectorJob
+ * Launches MapJoinJob
  *
  */
 public class App {
-    public static void main(String[] args) {
+    public static void main(final String[] args) {
         try {
-            SectorJob.launchExampleJob(args[0], args[1], args[2]);
-        } catch (Exception e) {
+            MapJoinJob.launchMapJoinJob(args[0], args[1], args[2]);
+        } catch (final Exception e) {
             System.out.println("Invalid arguments!");
         }
         System.out.println("Hello World!");

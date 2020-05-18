@@ -18,6 +18,7 @@ public class MapSideJoinMapper extends Mapper<LongWritable, Text, Text, Text> {
     private static HashMap<String, String[]> FileMap = new HashMap<String, String[]>();
     private BufferedReader brReader;
     private String strFileTicker = "";
+    private String strFileName = "";
     private final Text txtMapOutputKey = new Text("");
     private final Text txtMapOutputValue = new Text("");
 
@@ -28,7 +29,6 @@ public class MapSideJoinMapper extends Mapper<LongWritable, Text, Text, Text> {
     @Override
     protected void setup(final Context context) throws IOException, InterruptedException {
 
-        // Tocca trovare un modo moderno di caricare i file
         final URI[] cacheFiles = context.getCacheFiles();
 
         for (final URI eachURI : cacheFiles) {
@@ -36,10 +36,6 @@ public class MapSideJoinMapper extends Mapper<LongWritable, Text, Text, Text> {
                 context.getCounter(MYCOUNTER.HS_FILE_EXISTS).increment(1);
                 loadFileHashMap(new Path(eachURI), context);
             }
-            // if (eachURI.getName().toString().trim().equals("hsp_preprocessed")) {
-            // context.getCounter(MYCOUNTER.HSP_FILE_EXISTS).increment(1);
-            // loadFileHashMap(eachURI.getPath(), context);
-            // }
         }
     }
 
@@ -78,17 +74,19 @@ public class MapSideJoinMapper extends Mapper<LongWritable, Text, Text, Text> {
             final String arrCompAttributes[] = value.toString().split(",");
 
             try {
-                strFileTicker = FileMap.get(arrCompAttributes[0].toString())[0];
+                strFileTicker = FileMap.keySet().get(arrCompAttributes[0].toString());
+                strFileName = FileMap.get(arrCompAttributes[0].toString())[1];
             } finally {
                 strFileTicker = ((strFileTicker.equals(null) || strFileTicker.equals("")) ? "NOT_FOUND"
                         : strFileTicker);
+                strFileName = ((strFileName.equals(null) || strFileName.equals("")) ? "NOT_FOUND" : strFileName);
             }
 
-            txtMapOutputKey.set(arrCompAttributes[3].toString());
+            txtMapOutputKey.set(arrCompAttributes[0].toString());
 
-            txtMapOutputValue.set(arrCompAttributes[0].toString() + "," + arrCompAttributes[1].toString() + ","
-                    + arrCompAttributes[2].toString() + "," + arrCompAttributes[4].toString() + ","
-                    + arrCompAttributes[5].toString() + "," + strFileTicker);
+            // (ticker, name, sector, close, volume, date)
+            txtMapOutputValue.set(strFileTicker + "," + strFileName + "," + arrCompAttributes[1].toString() + "," + arrCompAttributes[3].toString() + ","
+                    + arrCompAttributes[4].toString() + "," + arrCompAttributes[5].toString());
         }
         context.write(txtMapOutputKey, txtMapOutputValue);
         strFileTicker = "";
