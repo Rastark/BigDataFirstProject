@@ -74,7 +74,8 @@ public class MapSideJoinMapper extends Mapper<LongWritable, Text, Text, Text> {
             final String arrCompAttributes[] = value.toString().split(",");
 
             try {
-                strFileTicker = FileMap.keySet().get(arrCompAttributes[0].toString());
+                if (FileMap.keySet().contains(arrCompAttributes[0].toString()))
+                    strFileTicker = arrCompAttributes[0].toString();
                 strFileName = FileMap.get(arrCompAttributes[0].toString())[1];
             } finally {
                 strFileTicker = ((strFileTicker.equals(null) || strFileTicker.equals("")) ? "NOT_FOUND"
@@ -85,8 +86,9 @@ public class MapSideJoinMapper extends Mapper<LongWritable, Text, Text, Text> {
             txtMapOutputKey.set(arrCompAttributes[0].toString());
 
             // (ticker, name, sector, close, volume, date)
-            txtMapOutputValue.set(strFileTicker + "," + strFileName + "," + arrCompAttributes[1].toString() + "," + arrCompAttributes[3].toString() + ","
-                    + arrCompAttributes[4].toString() + "," + arrCompAttributes[5].toString());
+            txtMapOutputValue.set(strFileTicker + "," + strFileName + "," + arrCompAttributes[1].toString() + ","
+                    + arrCompAttributes[3].toString() + "," + arrCompAttributes[4].toString() + ","
+                    + arrCompAttributes[5].toString());
         }
         context.write(txtMapOutputKey, txtMapOutputValue);
         strFileTicker = "";
