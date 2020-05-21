@@ -16,7 +16,7 @@ public class ChangePercentageMapper
         String[] fields = value.toString().split(",");
 
         String ticker = fields[HspFields.TICKER];
-        String date = fields[HspFields.DATA];
+        String date = fields[HspFields.DATE];
         Double price = Double.parseDouble(fields[HspFields.CLOSE]);
         
         context.write(new Text(ticker), new DatePrice(date, price));
