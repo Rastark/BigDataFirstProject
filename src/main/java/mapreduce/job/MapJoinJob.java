@@ -16,6 +16,7 @@ public class MapJoinJob {
 
         job.setMapperClass(MapSideJoinMapper.class);
         job.addCacheFile(new Path(joinFilePath).toUri());
+        job.setNumReduceTasks(0);
 
         FileInputFormat.addInputPath(job, new Path(in));
         FileOutputFormat.setOutputPath(job, new Path(out));
@@ -25,4 +26,5 @@ public class MapJoinJob {
 
         job.waitForCompletion(true);
     }
+
 }
