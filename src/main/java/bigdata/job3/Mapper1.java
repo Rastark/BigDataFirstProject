@@ -14,7 +14,7 @@ public class Mapper1 extends Mapper<Object, Text, Text, Text> {
     protected void map(Object key, Text value, Context context)
             throws IOException, InterruptedException {
 
-        String[] fields = value.toString().split(",");
+        String[] fields = value.toString().split("\t");
         String ticker = fields[HsHspJoinFields.TICKER];
         String name = fields[HsHspJoinFields.NAME];
         String close = fields[HsHspJoinFields.CLOSE];

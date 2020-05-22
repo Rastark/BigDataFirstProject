@@ -20,6 +20,7 @@ public class Mapper2 extends Mapper<Object, Text, Text, Text> {
         outputkey.set(fields[0]);
         outputvalue.set(fields[1]);
         context.write(outputkey, outputvalue);
+        // System.out.println("<" + outputkey.toString() + "> , <" + outputvalue.toString() + ">");
     }
     
 }

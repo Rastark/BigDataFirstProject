@@ -57,9 +57,14 @@ public class ChangePercentageReducer
      * @return the number n rounded up or down to d decimal places.
      */
     private double round(double n, int d) {
-        n *= 10*d + 0.5;
+        if (d < 0)
+            return n;
+        if (d != 0)
+            n = n * 10*d;
+        n += 0.5;
         n = Math.floor(n);
-        return n / (10*d);
+        
+        return (d == 0) ? n : n / (10*d);
     }
 
 }

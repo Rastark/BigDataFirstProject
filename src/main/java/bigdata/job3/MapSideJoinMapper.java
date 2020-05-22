@@ -34,9 +34,9 @@ public class MapSideJoinMapper extends Mapper<LongWritable, Text, Text, Text> {
         URI[] cacheFiles = context.getCacheFiles();
 
         for (URI eachURI : cacheFiles) {
-            if (eachURI.getPath().trim().equals("input/dataset-1/hss_cleaned.csv")) {
+            if (eachURI.getPath().trim().equals("input/dataset-1/hss_cleaned.tsv")) {
                 context.getCounter(MYCOUNTER.HS_FILE_EXISTS).increment(1);
-                loadFileHashMap(new Path("hss_cleaned.csv"), context);
+                loadFileHashMap(new Path("hss_cleaned.tsv"), context);
                 // this.ciccio = (new Path(eachURI.getPath()).toString());
             }
         }
@@ -52,7 +52,7 @@ public class MapSideJoinMapper extends Mapper<LongWritable, Text, Text, Text> {
             // Read each line, split and load to HashMap
             // System.out.println(brReader.readLine());
             while ((strLineRead = brReader.readLine()) != null) {
-                String cachedArray[] = strLineRead.split(",");
+                String cachedArray[] = strLineRead.split("\t");
                 String cachedValues[] = Arrays.copyOfRange(cachedArray, 1, cachedArray.length);
                 // System.out.println(cachedValues.toString());
                 FileMap.put(cachedArray[0].trim(), cachedValues);
@@ -75,7 +75,7 @@ public class MapSideJoinMapper extends Mapper<LongWritable, Text, Text, Text> {
         context.getCounter(MYCOUNTER.RECORD_COUNT).increment(1);
 
         if (value.toString().length() > 0) {
-            String arrCompAttributes[] = value.toString().split(",");
+            String arrCompAttributes[] = value.toString().split("\t");
 
             try {
                 String compFileKey = arrCompAttributes[0].toString().trim();
@@ -106,8 +106,8 @@ public class MapSideJoinMapper extends Mapper<LongWritable, Text, Text, Text> {
             txtMapOutputKey.set(arrCompAttributes[0].toString().trim());
 
             // (ticker, name, sector, close, volume, date)
-            txtMapOutputValue.set(strFileName + "," + strFileSector + "," + arrCompAttributes[1].toString() + ","
-                    + arrCompAttributes[4].toString() + "," + arrCompAttributes[5].toString());
+            txtMapOutputValue.set(strFileName + "\t" + strFileSector + "\t" + arrCompAttributes[1].toString() + "\t"
+                    + arrCompAttributes[4].toString() + "\t" + arrCompAttributes[5].toString());
         }
 
         // System.out.println();

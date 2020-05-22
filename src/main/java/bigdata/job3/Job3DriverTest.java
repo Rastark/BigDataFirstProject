@@ -12,7 +12,7 @@ import org.apache.hadoop.mapreduce.lib.output.FileOutputFormat;
 import org.apache.hadoop.util.Tool;
 import org.apache.hadoop.util.ToolRunner;
 
-public class Job3Driver extends Configured implements Tool {
+public class Job3DriverTest extends Configured implements Tool {
 
     @Override
     public int run(String[] args) throws Exception {
@@ -31,29 +31,29 @@ public class Job3Driver extends Configured implements Tool {
 
     /* ==========        INIT JOB JOIN        ========== */
 
-        Job jobJoin = Job.getInstance(conf, "Job-3-join");
-        jobJoin.setJarByClass(Job3Driver.class);
+    //     Job jobJoin = Job.getInstance(conf, "Job-3-join");
+    //     jobJoin.setJarByClass(Job3DriverTest.class);
 
-        jobJoin.addCacheFile(new URI(smallInput));
-        FileInputFormat.addInputPath(jobJoin, bigInput);
-        FileOutputFormat.setOutputPath(jobJoin, tempJ);
+    //     jobJoin.addCacheFile(new URI(smallInput));
+    //     FileInputFormat.addInputPath(jobJoin, bigInput);
+    //     FileOutputFormat.setOutputPath(jobJoin, tempJ);
 
-        jobJoin.setMapperClass(MapSideJoinMapper.class);
-        jobJoin.setNumReduceTasks(0);
+    //     jobJoin.setMapperClass(MapSideJoinMapper.class);
+    //     jobJoin.setNumReduceTasks(0);
 
-        jobJoin.setOutputKeyClass(Text.class);
-        jobJoin.setOutputValueClass(Text.class);
+    //     jobJoin.setOutputKeyClass(Text.class);
+    //     jobJoin.setOutputValueClass(Text.class);
 
-        System.out.println("\n*****************************************************"
-                           + "**********          START JOB JOIN         **********"
-                           + "*****************************************************\n");
-        jobJoin.waitForCompletion(true);
+    //     System.out.println("\n*****************************************************"
+    //                        + "**********          START JOB JOIN         **********"
+    //                        + "*****************************************************\n");
+    //     jobJoin.waitForCompletion(true);
 
 
     /* ==========         INIT JOB 1         ========== */
 
         Job job1 = Job.getInstance(conf, "Job-3-1");
-        job1.setJarByClass(Job3Driver.class);
+        job1.setJarByClass(Job3DriverTest.class);
 
         FileInputFormat.addInputPath(job1, tempJ);
         FileOutputFormat.setOutputPath(job1, temp1);
@@ -73,7 +73,7 @@ public class Job3Driver extends Configured implements Tool {
     /* ==========         INIT JOB 2         ========== */
 
         Job job2 = Job.getInstance(conf, "Job-3-2");
-        job2.setJarByClass(Job3Driver.class);
+        job2.setJarByClass(Job3DriverTest.class);
 
         FileInputFormat.addInputPath(job2, temp1);
         FileOutputFormat.setOutputPath(job2, temp2);
@@ -93,7 +93,7 @@ public class Job3Driver extends Configured implements Tool {
     /* ==========         INIT JOB 3         ========== */
 
         Job job3 = Job.getInstance(conf, "Job-3-3");
-        job3.setJarByClass(Job3Driver.class);
+        job3.setJarByClass(Job3DriverTest.class);
 
         FileInputFormat.addInputPath(job3, temp2);
         FileOutputFormat.setOutputPath(job3, output);
@@ -118,7 +118,7 @@ public class Job3Driver extends Configured implements Tool {
     }
 
     public static void main(String[] args) throws Exception {
-        int exitCode = ToolRunner.run(new Configuration(), new Job3Driver(), args);
+        int exitCode = ToolRunner.run(new Configuration(), new Job3DriverTest(), args);
         System.exit(exitCode);
     }
     

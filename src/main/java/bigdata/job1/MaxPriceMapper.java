@@ -13,7 +13,7 @@ public class MaxPriceMapper extends Mapper<LongWritable, Text, Text, DoubleWrita
     protected void map(LongWritable key, Text value, Context context)
             throws IOException, InterruptedException {
 
-        String[] fields = value.toString().split(",");
+        String[] fields = value.toString().split("\t");
 
         String ticker = fields[HspFields.TICKER];
         double highPrice = Double.parseDouble(fields[HspFields.HIGH]);

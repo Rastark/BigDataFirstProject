@@ -12,7 +12,7 @@ public class MeanVolumeMapper extends Mapper<LongWritable, Text, Text, LongWrita
     protected void map(LongWritable key, Text value, Context context) 
             throws IOException, InterruptedException {
         
-        String[] fields = value.toString().split(",");
+        String[] fields = value.toString().split("\t");
 
         String ticker = fields[HspFields.TICKER];
         long volume = Long.parseLong(fields[HspFields.VOLUME]);

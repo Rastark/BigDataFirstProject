@@ -13,7 +13,7 @@ public class Mapper3 extends Mapper<Object, Text, Text, Text> {
     @Override
     protected void map(Object key, Text value, Context context)
             throws IOException, InterruptedException {
-        /* input format: <'name:ticker', '[year:+/-change%, ... , ...]'> */
+        /* input format: <'name:ticker', '[year:change, ... , ...]'> */
 
         String[] fields = value.toString().split("\t");
         String name = fields[0].split(":")[0];

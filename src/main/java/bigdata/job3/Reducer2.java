@@ -1,9 +1,8 @@
 package bigdata.job3;
 
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.Collections;
-import java.util.Comparator;
+import java.util.LinkedList;
 import java.util.List;
 
 import org.apache.hadoop.io.Text;
@@ -19,30 +18,57 @@ public class Reducer2 extends Reducer<Text, Text, Text, Text> {
         /* key is in the form 'name:ticker',
          * values are in the form 'year:change' */
 
-        List<Text> trends = new ArrayList<>();
+        List<Text> trends = new LinkedList<>();
+        System.out.print("<" + key.toString() + "> , <");
         for (Text val : values) {
-            trends.add(val);
+            trends.add(new Text(val));
+            System.out.print(val + ", ");
         }
+        System.out.println(">");
 
-        trends = sortTrends(trends).subList(0, 3);
+        // trends = sortTrends(trends);
+        Collections.sort(trends, Collections.reverseOrder());
+        
+        trends = lastThreeYears(trends);
+        System.out.println("<" + key.toString() + "> ==> { " + trends + " }");
         String formattedTrends = listToString(trends);
         
         outputvalue.set(formattedTrends);
-        // output format: <'name:ticker', '[year:+/-change%, ... , ...]'>
+        // output format: <'name:ticker', '[year:change, ... , ...]'>
         context.write(key, outputvalue);
     }
 
 
-    private static <T extends Text> List<T> sortTrends(List<T> list) {
+    private static List<Text> lastThreeYears(List<Text> list) {
+        List<Text> last3years = new LinkedList<>();
+        int lastYear = -1;
+        int count = 0;
 
-        Collections.sort(list, new Comparator<T>() {
-            @Override
-            public int compare(T o1, T o2) {
-                return o2.compareTo(o1);
+        for (Text t : list) {
+            int currYear = Integer.parseInt(t.toString().split(":")[0]);
+            if (lastYear < 0 || currYear == lastYear-1) {
+                last3years.add(new Text(t));
+                lastYear = currYear;
+            } else {
+                lastYear--;
+                last3years.add(new Text(lastYear + ":0"));
             }
-        });
+            count++;
+            if (count == 3)
+                break;
+        }
+        while (count < 3) {
+            lastYear--;
+            last3years.add(new Text(lastYear + ":0"));
+            count++;
+        }
+        return last3years;
+    }
 
-        return list;
+    private static <T extends Text> List<T> sortTrends(List<T> list) {
+        List<T> newList = new LinkedList<>(list);
+        Collections.sort(newList, Collections.reverseOrder());
+        return newList;
     }
 
     /**

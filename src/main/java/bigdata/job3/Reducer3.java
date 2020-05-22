@@ -20,7 +20,7 @@ public class Reducer3 extends Reducer<Text, Text, Text, Text> {
         names.append("{");
 
         for (Text val : values) {
-        if (names.length() != 0)
+        if (names.length() > 1)
             names.append(",");
         names.append(val.toString());
         }

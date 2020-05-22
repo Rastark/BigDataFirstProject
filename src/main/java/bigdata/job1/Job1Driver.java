@@ -45,9 +45,9 @@ public class Job1Driver extends Configured implements Tool {
         job1.setOutputKeyClass(Text.class);
         job1.setOutputValueClass(Text.class);
 
-        System.out.println("*****************************************************"
-                         + "**********           START JOB 1           **********"
-                         + "*****************************************************");
+        System.out.println("\n*****************************************************"
+                           + "**********           START JOB 1           **********"
+                           + "*****************************************************\n");
         job1.submit();
 
 
@@ -68,9 +68,9 @@ public class Job1Driver extends Configured implements Tool {
         job2.setOutputKeyClass(Text.class);
         job2.setOutputValueClass(Text.class);
 
-        System.out.println("*****************************************************"
-                         + "**********           START JOB 2           **********"
-                         + "*****************************************************");
+        System.out.println("\n*****************************************************"
+                           + "**********           START JOB 2           **********"
+                           + "*****************************************************\n");
         job2.submit();
 
 
@@ -91,9 +91,9 @@ public class Job1Driver extends Configured implements Tool {
         job3.setOutputKeyClass(Text.class);
         job3.setOutputValueClass(Text.class);
 
-        System.out.println("*****************************************************"
-                         + "**********           START JOB 3           **********"
-                         + "*****************************************************");
+        System.out.println("\n*****************************************************"
+                           + "**********           START JOB 3           **********"
+                           + "*****************************************************\n");
         job3.submit();
 
 
@@ -113,9 +113,9 @@ public class Job1Driver extends Configured implements Tool {
         job4.setOutputKeyClass(Text.class);
         job4.setOutputValueClass(Text.class);
 
-        System.out.println("*****************************************************"
-                         + "**********           START JOB 4           **********"
-                         + "*****************************************************");
+        System.out.println("\n*****************************************************"
+                           + "**********           START JOB 4           **********"
+                           + "*****************************************************\n");
         job4.submit();
 
 
@@ -143,13 +143,13 @@ public class Job1Driver extends Configured implements Tool {
         job5.setOutputKeyClass(Text.class);
         job5.setOutputValueClass(Text.class);
 
-        System.out.println("*****************************************************"
-                         + "**********           START JOB 5           **********"
-                         + "*****************************************************");
+        System.out.println("\n*****************************************************"
+                           + "**********           START JOB 5           **********"
+                           + "*****************************************************\n");
         if (job5.waitForCompletion(true)) {
-            System.out.println("*****************************************************"
-                             + "**********            END JOB 5            **********"
-                             + "*****************************************************");
+            System.out.println("\n*****************************************************"
+                               + "**********            END JOB 5            **********"
+                               + "*****************************************************\n");
             return 0;
         } else{
             return 1;

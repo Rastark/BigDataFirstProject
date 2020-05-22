@@ -40,10 +40,11 @@ public class Reducer1 extends Reducer<Text, Text, Text, Text> {
             }
         }
         double change = (lastPrice - firstPrice) / firstPrice * 100;
-        change = round(change, 1);    // round up to the first decimal place
+        change = round(change, 0);
+        int changeInt = (int) change;
         
         outputkey.set(name + ":" + ticker);
-        outputvalue.set(year + ":" + change);
+        outputvalue.set(year + ":" + changeInt);
         context.write(outputkey, outputvalue);
     }
 
@@ -54,9 +55,14 @@ public class Reducer1 extends Reducer<Text, Text, Text, Text> {
      * @return the number n rounded up or down to d decimal places.
      */
     private static double round(double n, int d) {
-        n *= 10*d + 0.5;
+        if (d < 0)
+            return n;
+        if (d != 0)
+            n = n * 10*d;
+        n += 0.5;
         n = Math.floor(n);
-        return n / (10*d);
+
+        return (d == 0) ? n : n / (10*d);
     }
     
 }
