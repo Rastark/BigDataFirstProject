@@ -1,7 +1,6 @@
 package mapreduce.mapper;
 
 import mapreduce.finput.HsHspJoinFields;
-import mapreduce.finput.HspFields;
 import mapreduce.objects.HsHspJoinWritable;
 import mapreduce.objects.StringBigram;
 
@@ -30,13 +29,15 @@ public class SectorYearMapper extends Mapper<LongWritable, Text, StringBigram, H
         long volume = Long.parseLong(fields[HsHspJoinFields.VOLUME]);
         String date = fields[HsHspJoinFields.DATE];
 
+        // Key
         outputKey.setFirstKey(new Text(sector));
         String[] dateArray = date.split(",");
         String year = dateArray[0];
         outputKey.setSecondKey(new Text(year));
 
         int dayInt = Integer.parseInt(dateArray[1]) * 100 + Integer.parseInt(dateArray[2]);
-
+                
+        // Value
         outputValue.setTicker(new Text(ticker));
         outputValue.setName(new Text(name));
         outputValue.setClose(new IntWritable(close));
