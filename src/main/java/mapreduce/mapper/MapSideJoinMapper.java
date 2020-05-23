@@ -22,7 +22,6 @@ public class MapSideJoinMapper extends Mapper<LongWritable, Text, Text, Text> {
     private String strFileSector = "";
     private Text txtMapOutputKey = new Text("");
     private Text txtMapOutputValue = new Text("");
-    private String ciccio = "";
 
     public enum MYCOUNTER {
         RECORD_COUNT, HS_FILE_EXISTS, HSP_FILE_EXISTS, FILE_NOT_FOUND, SOME_OTHER_ERROR
@@ -34,10 +33,9 @@ public class MapSideJoinMapper extends Mapper<LongWritable, Text, Text, Text> {
         URI[] cacheFiles = context.getCacheFiles();
 
         for (URI eachURI : cacheFiles) {
-            if (eachURI.getPath().trim().equals("input/hs_preprocessed.csv")) {
+            if (eachURI.getPath().trim().equals("input/hss_cleaned.tsv")) {
                 context.getCounter(MYCOUNTER.HS_FILE_EXISTS).increment(1);
-                loadFileHashMap(new Path("hs_preprocessed.csv"), context);
-                // this.ciccio = (new Path(eachURI.getPath()).toString());
+                loadFileHashMap(new Path("hss_cleaned.tsv"), context);
             }
         }
     }
@@ -49,12 +47,9 @@ public class MapSideJoinMapper extends Mapper<LongWritable, Text, Text, Text> {
         try {
             brReader = new BufferedReader(new FileReader(filePath.toString()));
 
-            // Read each line, split and load to HashMap
-            // System.out.println(brReader.readLine());
             while ((strLineRead = brReader.readLine()) != null) {
-                String cachedArray[] = strLineRead.split(",");
+                String cachedArray[] = strLineRead.split("\t");
                 String cachedValues[] = Arrays.copyOfRange(cachedArray, 1, cachedArray.length);
-                System.out.println(cachedValues.toString());
                 FileMap.put(cachedArray[0].trim(), cachedValues);
             }
         } catch (FileNotFoundException e) {
@@ -75,17 +70,14 @@ public class MapSideJoinMapper extends Mapper<LongWritable, Text, Text, Text> {
         context.getCounter(MYCOUNTER.RECORD_COUNT).increment(1);
 
         if (value.toString().length() > 0) {
-            String arrCompAttributes[] = value.toString().split(",");
+            String arrCompAttributes[] = value.toString().split("\t");
 
             try {
                 String compFileKey = arrCompAttributes[0].toString().trim();
-                // System.out.println(FileMap.keySet().toString());
                 if (FileMap.keySet().contains(compFileKey)) {
                     strFileTicker = compFileKey;
                     strFileName = FileMap.get(compFileKey)[1];
                     strFileSector = FileMap.get(compFileKey)[2];
-                    // } else {
-                    // strFileName = "pippo";
                 }
             } finally {
                 strFileTicker = ((strFileTicker.equals(null) || strFileTicker.equals("")) ? "NOT_FOUND"
@@ -95,22 +87,13 @@ public class MapSideJoinMapper extends Mapper<LongWritable, Text, Text, Text> {
                         : strFileSector);
             }
 
-            // System.out.println(
-            // "*****************************************************************************************\n***************************************************************************"
-            // + context.getCacheFiles().toString()
-            // +
-            // "**********************************************************************************\n**********************************************************************************");
-
-            System.out.println(ciccio);
-
             txtMapOutputKey.set(arrCompAttributes[0].toString().trim());
 
             // (ticker, name, sector, close, volume, date)
-            txtMapOutputValue.set(strFileName + "," + strFileSector + "," + arrCompAttributes[1].toString() + ","
-                    + arrCompAttributes[4].toString() + "," + arrCompAttributes[5].toString());
+            txtMapOutputValue.set(strFileName + "\t" + strFileSector + "\t" + arrCompAttributes[1].toString() + "\t"
+                    + arrCompAttributes[4].toString() + "\t" + arrCompAttributes[5].toString());
         }
 
-        System.out.println();
         context.write(txtMapOutputKey, txtMapOutputValue);
     }
 }

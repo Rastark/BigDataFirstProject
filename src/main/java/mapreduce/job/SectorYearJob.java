@@ -12,6 +12,7 @@ import org.apache.hadoop.mapreduce.Job;
 import org.apache.hadoop.mapreduce.lib.input.FileInputFormat;
 import mapreduce.mapper.MapSideJoinMapper;
 import mapreduce.mapper.SectorYearMapper;
+import mapreduce.objects.StringBigram;
 import mapreduce.reducer.SectorYearReducer;
 
 public class SectorYearJob extends Configured implements Tool{
@@ -43,7 +44,9 @@ public class SectorYearJob extends Configured implements Tool{
         FileOutputFormat.setOutputPath(joinJobbe, tmpDir);
 
         joinJobbe.setOutputKeyClass(Text.class);
+        joinJobbe.setMapOutputKeyClass(StringBigram.class);
         joinJobbe.setOutputValueClass(Text.class);
+        joinJobbe.setMapOutputValueClass(Text.class);
 
         joinJobbe.waitForCompletion(true);
 

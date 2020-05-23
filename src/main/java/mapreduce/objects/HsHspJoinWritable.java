@@ -4,6 +4,7 @@ import java.io.DataInput;
 import java.io.DataOutput;
 import java.io.IOException;
 
+import org.apache.hadoop.io.DoubleWritable;
 import org.apache.hadoop.io.IntWritable;
 import org.apache.hadoop.io.LongWritable;
 import org.apache.hadoop.io.Text;
@@ -13,7 +14,7 @@ public class HsHspJoinWritable implements Writable {
 
     private Text ticker;
     private Text name;
-    private IntWritable close;
+    private DoubleWritable close;
     private LongWritable volume;
     private IntWritable dayInt;
 
@@ -57,11 +58,11 @@ public class HsHspJoinWritable implements Writable {
         this.name = name;
     }
 
-    public IntWritable getClose() {
+    public DoubleWritable getClose() {
         return close;
     }
 
-    public void setClose(IntWritable close) {
+    public void setClose(DoubleWritable close) {
         this.close = close;
     }
 

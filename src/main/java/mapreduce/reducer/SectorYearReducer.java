@@ -39,7 +39,7 @@ public class SectorYearReducer extends Reducer<StringBigram, HsHspJoinFields, Te
 
             // Quotation change parameters
             int currentDay = val.getDayInt().get();
-            int currentClose = val.getClose().get();
+            double currentClose = val.getClose().get();
             String ticker = val.getTicker().toString();
             
             if(!companyDataMap.containsKey(ticker)) {
