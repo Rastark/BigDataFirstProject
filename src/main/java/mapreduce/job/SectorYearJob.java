@@ -34,20 +34,20 @@ public class SectorYearJob extends Configured implements Tool{
         Configuration conf = getConf();
 
         // MapSideJoinJob
-        // Job joinJobbe = Job.getInstance(conf, "Job2Join");
-        // joinJobbe.setJarByClass(SectorYearJob.class);
+        Job joinJobbe = Job.getInstance(conf, "Job2Join");
+        joinJobbe.setJarByClass(SectorYearJob.class);
 
-        // joinJobbe.setMapperClass(MapSideJoinMapper.class);
-        // joinJobbe.addCacheFile(new URI(smallFile));
-        // joinJobbe.setNumReduceTasks(0);
+        joinJobbe.setMapperClass(MapSideJoinMapper.class);
+        joinJobbe.addCacheFile(new URI(smallFile));
+        joinJobbe.setNumReduceTasks(0);
 
-        // FileInputFormat.addInputPath(joinJobbe, bigFile);
-        // FileOutputFormat.setOutputPath(joinJobbe, tmpDir);
+        FileInputFormat.addInputPath(joinJobbe, bigFile);
+        FileOutputFormat.setOutputPath(joinJobbe, tmpDir);
 
-        // joinJobbe.setOutputKeyClass(Text.class);
-        // joinJobbe.setOutputValueClass(Text.class);
+        joinJobbe.setOutputKeyClass(Text.class);
+        joinJobbe.setOutputValueClass(Text.class);
 
-        // joinJobbe.waitForCompletion(true);
+        joinJobbe.waitForCompletion(true);
 
         // SectorYearJob
         Job job = Job.getInstance(conf, "Job2");

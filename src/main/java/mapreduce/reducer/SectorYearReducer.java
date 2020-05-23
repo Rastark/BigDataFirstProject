@@ -24,7 +24,6 @@ public class SectorYearReducer extends Reducer<StringBigram, HsHspJoinWritable, 
         double quotationChange = 0;
         HashMap<String, CompanyData> companyDataMap =  new HashMap<>();
         double sumOfChanges = 0;
-        int companyCounter = 0;
 
         // Mean daily quotation variable
         double dailyQuotationSum = 0;
@@ -44,7 +43,6 @@ public class SectorYearReducer extends Reducer<StringBigram, HsHspJoinWritable, 
             
             if(!companyDataMap.containsKey(ticker)) {
                 companyDataMap.put(ticker, new CompanyData());
-                companyCounter++;
                 }
             CompanyData currentCompanyData = companyDataMap.get(ticker);
 
