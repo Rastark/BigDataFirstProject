@@ -6,14 +6,13 @@ import java.util.HashMap;
 import org.apache.hadoop.io.Text;
 import org.apache.hadoop.mapreduce.Reducer;
 
-import mapreduce.finput.HsHspJoinFields;
 import mapreduce.objects.CompanyData;
 import mapreduce.objects.HsHspJoinWritable;
 import mapreduce.objects.StringBigram;
 
-public class SectorYearReducer extends Reducer<StringBigram, HsHspJoinFields, Text, Text> {
+public class SectorYearReducer extends Reducer<StringBigram, HsHspJoinWritable, Text, Text> {
 
-    public void reduce(Text key, Iterable<HsHspJoinWritable> values, Context context)
+    public void reduce(StringBigram key, Iterable<HsHspJoinWritable> values, Context context)
             throws IOException, InterruptedException {
 
         // Mean volume variables
@@ -25,6 +24,7 @@ public class SectorYearReducer extends Reducer<StringBigram, HsHspJoinFields, Te
         double quotationChange = 0;
         HashMap<String, CompanyData> companyDataMap =  new HashMap<>();
         double sumOfChanges = 0;
+        int companyCounter = 0;
 
         // Mean daily quotation variable
         double dailyQuotationSum = 0;
@@ -44,7 +44,8 @@ public class SectorYearReducer extends Reducer<StringBigram, HsHspJoinFields, Te
             
             if(!companyDataMap.containsKey(ticker)) {
                 companyDataMap.put(ticker, new CompanyData());
-            }
+                companyCounter++;
+                }
             CompanyData currentCompanyData = companyDataMap.get(ticker);
 
             if(currentCompanyData.getFirstDay() > currentDay) {
@@ -69,10 +70,10 @@ public class SectorYearReducer extends Reducer<StringBigram, HsHspJoinFields, Te
         
         meanVolume = sumVolume / countVolume;
 
-        quotationChange = sumOfChanges / companyDataMap.size();
+        quotationChange = sumOfChanges / companyDataMap.keySet().size();
 
         meanDailyQuotation = dailyQuotationSum / count;
 
-        context.write(new Text(key), new Text(meanVolume + ", " + quotationChange + ", " + meanDailyQuotation));
+        context.write(new Text(key.toString()), new Text(meanVolume + ", " + quotationChange + ", " + meanDailyQuotation));
     }
 }

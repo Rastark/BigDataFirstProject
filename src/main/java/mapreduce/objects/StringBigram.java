@@ -86,4 +86,11 @@ public class StringBigram implements WritableComparable<StringBigram> {
     public void setSecondKey(Text secondKey) {
         this.secondKey = secondKey;
     }
+
+    @Override
+    public String toString() {
+        return "[" + firstKey + ", " + secondKey + "]";
+    }
+
+    
 }

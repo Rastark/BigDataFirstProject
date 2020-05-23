@@ -12,6 +12,7 @@ import org.apache.hadoop.mapreduce.Job;
 import org.apache.hadoop.mapreduce.lib.input.FileInputFormat;
 import mapreduce.mapper.MapSideJoinMapper;
 import mapreduce.mapper.SectorYearMapper;
+import mapreduce.objects.HsHspJoinWritable;
 import mapreduce.objects.StringBigram;
 import mapreduce.reducer.SectorYearReducer;
 
@@ -33,22 +34,20 @@ public class SectorYearJob extends Configured implements Tool{
         Configuration conf = getConf();
 
         // MapSideJoinJob
-        Job joinJobbe = Job.getInstance(conf, "Job2Join");
-        joinJobbe.setJarByClass(SectorYearJob.class);
+        // Job joinJobbe = Job.getInstance(conf, "Job2Join");
+        // joinJobbe.setJarByClass(SectorYearJob.class);
 
-        joinJobbe.setMapperClass(MapSideJoinMapper.class);
-        joinJobbe.addCacheFile(new URI(smallFile));
-        joinJobbe.setNumReduceTasks(0);
+        // joinJobbe.setMapperClass(MapSideJoinMapper.class);
+        // joinJobbe.addCacheFile(new URI(smallFile));
+        // joinJobbe.setNumReduceTasks(0);
 
-        FileInputFormat.addInputPath(joinJobbe, bigFile);
-        FileOutputFormat.setOutputPath(joinJobbe, tmpDir);
+        // FileInputFormat.addInputPath(joinJobbe, bigFile);
+        // FileOutputFormat.setOutputPath(joinJobbe, tmpDir);
 
-        joinJobbe.setOutputKeyClass(Text.class);
-        joinJobbe.setMapOutputKeyClass(StringBigram.class);
-        joinJobbe.setOutputValueClass(Text.class);
-        joinJobbe.setMapOutputValueClass(Text.class);
+        // joinJobbe.setOutputKeyClass(Text.class);
+        // joinJobbe.setOutputValueClass(Text.class);
 
-        joinJobbe.waitForCompletion(true);
+        // joinJobbe.waitForCompletion(true);
 
         // SectorYearJob
         Job job = Job.getInstance(conf, "Job2");
@@ -61,7 +60,9 @@ public class SectorYearJob extends Configured implements Tool{
         FileOutputFormat.setOutputPath(job, outputDir);
 
         job.setOutputKeyClass(Text.class);
+        job.setMapOutputKeyClass(StringBigram.class);
         job.setOutputValueClass(Text.class);
+        job.setMapOutputValueClass(HsHspJoinWritable.class);
 
         return job.waitForCompletion(true) ? 0 : 1;
     }      

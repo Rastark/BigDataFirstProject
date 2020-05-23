@@ -8,6 +8,10 @@ public class CompanyData {
     private double lastClose;
 
     public CompanyData() {
+        this.firstDay = 9999;        
+        this.lastDay = 0;
+        this.firstClose = 0;
+        this.lastClose = 0;
     }
 
     public CompanyData(int firstDay, int lastDay, double firstClose, double lastClose) {
