@@ -7,7 +7,7 @@ public class CompleteStock implements Serializable {
 
     private String ticker;
     private String name;
-    private int close;
+    private double close;
     private long volume;
     private Date date;
 
@@ -32,11 +32,11 @@ public class CompleteStock implements Serializable {
         this.name = name;
     }
 
-    public int getClose() {
+    public double getClose() {
         return close;
     }
 
-    public void setClose(int close) {
+    public void setClose(double close) {
         this.close = close;
     }
 
