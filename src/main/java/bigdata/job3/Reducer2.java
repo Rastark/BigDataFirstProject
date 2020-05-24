@@ -65,11 +65,11 @@ public class Reducer2 extends Reducer<Text, Text, Text, Text> {
         return last3years;
     }
 
-    private static <T extends Text> List<T> sortTrends(List<T> list) {
-        List<T> newList = new LinkedList<>(list);
-        Collections.sort(newList, Collections.reverseOrder());
-        return newList;
-    }
+    // private static <T extends Text> List<T> sortTrends(List<T> list) {
+    //     List<T> newList = new LinkedList<>(list);
+    //     Collections.sort(newList, Collections.reverseOrder());
+    //     return newList;
+    // }
 
     /**
      * return formatted trends list
