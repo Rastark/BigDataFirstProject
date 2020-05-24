@@ -25,33 +25,36 @@ public class Job2 {
 
         // Import and Map creation
         JavaRDD<String> priceLines = spark.read().textFile(args[0]).javaRDD();
-        JavaRDD<StockPrice> stockPrices = StocksParser.parseFileLineToStockPrice(priceLines);
-
+        JavaRDD<StockPrice> stockPrices = StocksParser.parseFileLineToStockPrice(priceLines).cache();
+            
         JavaRDD<String> stockLines = spark.read().textFile(args[1]).javaRDD();
-        JavaRDD<StockName> stockNames = StocksParser.parseFileLineToStock(stockLines);
+        JavaRDD<StockName> stockNames = StocksParser.parseFileLineToStock(stockLines).cache();
 
         // Join
         JavaPairRDD<String, StockName> stockNamesByTicker = stockNames.mapToPair(v -> new Tuple2<>(v.getTicker(), v));
         JavaPairRDD<String, StockPrice> stockPricesByTicker = stockPrices.mapToPair(v -> new Tuple2<>(v.getTicker(), v));
-        JavaPairRDD<String, Tuple2<StockName, StockPrice>> stockNamePrices = stockNamesByTicker
-                .join(stockPricesByTicker);
-
-        JavaPairRDD<String, CompleteStock> completeStocksByTicker = stockNamePrices
+        
+        JavaPairRDD<String, CompleteStock> completeStocksByTicker = stockNamesByTicker
+                .join(stockPricesByTicker)
                 .mapValues(snp -> new CompleteStock(snp._1().getTicker(), snp._1().getName(), snp._1().getSector(),
-                        snp._2().getClose(), snp._2().getVolume(), snp._2().getDate()));
+                snp._2().getClose(), snp._2().getVolume(), snp._2().getDate()));;
+
+        // JavaPairRDD<String, CompleteStock> completeStocksByTicker = stockNamePrices
 
         JavaPairRDD<Tuple2<String, Integer>, CompleteStock> completeStocksBySectorYear = completeStocksByTicker
                 .mapToPair(cst -> new Tuple2<>(new Tuple2<>(cst._2().getSector(), cst._2().getYear()), cst._2()));
 
         // Job2a
-        JavaPairRDD<Tuple2<String, Integer>, Tuple2<Long, Long>> volumesBySectorYear = completeStocksBySectorYear
-                .mapValues(v -> new Tuple2<>(v.getVolume(), Long.valueOf(1)));
-        
-        JavaPairRDD<Tuple2<String, Integer>, Tuple2<Long, Long>> totalSectorDateVolumes = volumesBySectorYear
-                .reduceByKey((v1, v2) -> new Tuple2<>(v1._1() + v2._1(), v1._2() + v2._2()));
-        
-        JavaPairRDD<Tuple2<String, Integer>, Double> meanSectorDateVolumes = totalSectorDateVolumes
+        JavaPairRDD<Tuple2<String, Integer>, Double> meanSectorDateVolumes = completeStocksBySectorYear
+                .mapValues(v -> new Tuple2<>(v.getVolume(), Long.valueOf(1)))
+                .reduceByKey((v1, v2) -> new Tuple2<>(v1._1() + v2._1(), v1._2() + v2._2()))
                 .mapValues(v -> Double.valueOf(v._1()) / v._2());
+        
+        // JavaPairRDD<Tuple2<String, Integer>, Double> meanSectorDateVolumes = volumesBySectorYear
+
+        
+        // JavaPairRDD<Tuple2<String, Integer>, Double> meanSectorDateVolumes = totalSectorDateVolumes
+                
 
         // Jon2b
         JavaPairRDD<Tuple2<String, Integer>, Tuple2<Double, String>> dateCloseBySectorYear = completeStocksBySectorYear

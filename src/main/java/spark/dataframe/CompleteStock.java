@@ -70,11 +70,11 @@ public class CompleteStock implements Serializable {
     }
 
     public Integer getYear() {
-        return Integer.valueOf(this.date.split("-")[0]);
+        return Integer.parseInt(this.date.split("-")[0]);
     }
     
     public Integer getDay() { 
-        return Integer.valueOf(this.arrayDate[1])*100 + Integer.valueOf(this.arrayDate[2]);
+        return Integer.parseInt(this.arrayDate[1])*100 + Integer.parseInt(this.arrayDate[2]);
     }
 
     @Override

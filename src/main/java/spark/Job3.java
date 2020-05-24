@@ -1,8 +1,5 @@
 package spark;
 
-import java.util.Date;
-import java.util.regex.Pattern;
-
 import org.apache.spark.api.java.JavaPairRDD;
 import org.apache.spark.api.java.JavaRDD;
 import org.apache.spark.sql.SparkSession;
@@ -16,8 +13,6 @@ import spark.parser.StocksParser;
 
 public class Job3 {
 
-    private static final Pattern SPACE = Pattern.compile("\t");
-
     public static void main(final String[] args) throws Exception {
 
         if (args.length < 1) {
@@ -26,7 +21,7 @@ public class Job3 {
         }
 
         // Spark session creation
-        SparkSession spark = SparkSession.builder().appName("BigDataProject").getOrCreate();
+        SparkSession spark = SparkSession.builder().appName("BigDataProjectJob3").getOrCreate();
 
         // Import and Map creation
         JavaRDD<String> priceLines = spark.read().textFile(args[0]).javaRDD();
@@ -49,9 +44,11 @@ public class Job3 {
             snp._2().getDate()
         ));
         
+        // Indicizzo per ticker e anno
         JavaPairRDD<Tuple2<String, Integer>, CompleteStock> completeStocksByTickerYear = completeStocksByTicker
-        .mapToPair(cst -> new Tuple2<>(new Tuple2<>(cst._2().getTicker(), cst._2().getYear()), cst._2()));
-
+            .mapToPair(cst -> new Tuple2<>(new Tuple2<>(cst._2().getTicker(), cst._2().getYear()), cst._2()))
+            .filter(v-> v._1()._2()==2016 || v._1()._2()==2017|| v._1()._2()==2018);
+    
         JavaPairRDD<Tuple2<String, Integer>, Tuple3<String, Double, String>> dateCloseByTickerYear = completeStocksByTickerYear
                 .mapValues(cssy -> new Tuple3<>(cssy.getName(), cssy.getClose(), cssy.getDate()));
 
@@ -65,14 +62,22 @@ public class Job3 {
                 .join(maxDateCloseByTickerYear);
 
         JavaPairRDD<Tuple2<String, Integer>, Double> quotationChanges = joinDateCloseByTickerYear
-            .mapValues(mpt -> quotationChange(mpt));
+            .mapValues(mpt -> quotationChange(mpt)).sortByKey(false);
 
-        // Jon2b
+        // Ticker-andamento    
+        JavaPairRDD<String, Tuple2<String, StockName>> qc = quotationChanges
+            .mapToPair(v -> new Tuple2<>(v._1()._1(), v._1()._2() + ":" + v._2()))
+            .reduceByKey((v1, v2) -> v1 + "," + v2)
+            .join(stockNamesByTicker);
 
-        JavaPairRDD<Tuple2<String, Integer>, Double> meanQuotationChanges = joinDateCloseByTickerYear
-                .mapValues(v -> new Tuple2<>(quotationChange(v), Long.valueOf(1)))
-                .reduceByKey((v1, v2) -> new Tuple2<>(v1._1() + v2._1(), v1._2() + v2._2()))
-                .mapValues(v -> v._1() / v._2());
+        JavaPairRDD<String, String> result = qc
+            .mapToPair(v -> new Tuple2<>(v._2()._1(), v._2()._2().getName()))
+            .reduceByKey((v1, v2) -> v1 + "," + v2);
+
+        result.coalesce(1).saveAsTextFile(args[2]);
+
+        spark.stop();
+
     }
 
     public static Tuple3<String, Double, String> maxDateClose3(Tuple3<String, Double, String> t1, Tuple3<String, Double, String> t2) {
