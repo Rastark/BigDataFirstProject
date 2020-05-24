@@ -1,8 +1,6 @@
 package spark.parser;
 
 import java.io.IOException;
-import java.text.DateFormat;
-import java.text.SimpleDateFormat;
 import java.util.Arrays;
 
 // import com.opencsv.CSVParser;
@@ -17,7 +15,7 @@ public class StocksParser {
 
     public static JavaRDD<StockPrice> parseFileLineToStockPrice(JavaRDD<String> fileLines) throws IOException {
 
-        DateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
+        // DateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
 
         try {
             if ((fileLines) != null) {
@@ -27,7 +25,7 @@ public class StocksParser {
                     Double.parseDouble(fl.split("\t")[2]),
                     Double.parseDouble(fl.split("\t")[3]),
                     Long.parseLong(fl.split("\t")[4]),
-                    dateFormat.parse(fl.split("\t")[5])));
+                    fl.split("\t")[5]));
                     return fileLineRDD;
             }
 
@@ -42,10 +40,10 @@ public class StocksParser {
 
         try {
             if ((fileLines) != null) {
-                JavaRDD<String> fileRDD = fileLines.flatMap(fl -> Arrays.asList(fl.split(" ")).iterator());
+                JavaRDD<String> fileRDD = fileLines.flatMap(fl -> Arrays.asList(fl.split(":")).iterator());
                 JavaRDD<StockName> fileLineRDD = fileRDD.map(fl -> new StockName(fl.split("\t")[0],
-                    fl.split("\t")[1], 
-                    fl.split("\t")[2]));
+                    fl.split("\t")[2], 
+                    fl.split("\t")[3]));
                     return fileLineRDD;
             }
 

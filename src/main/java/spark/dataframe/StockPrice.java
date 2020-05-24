@@ -1,7 +1,6 @@
 package spark.dataframe;
 
 import java.io.Serializable;
-import java.util.Date;
 
 public class StockPrice implements Serializable {
 
@@ -10,19 +9,21 @@ public class StockPrice implements Serializable {
 	private double lowThe;
 	private double highThe;
 	private long volume;
-	private Date date;
-
+	private String date;
+	private String[] arrayDate;
+	
 	public StockPrice() {
 		ticker = "";
 	}
 
-	public StockPrice(String ticker, double close, double lowThe, double highThe, long volume, Date date) {
+	public StockPrice(String ticker, double close, double lowThe, double highThe, long volume, String date) {
 		this.ticker = ticker;
 		this.close = close;
 		this.lowThe = lowThe;
 		this.highThe = highThe;
 		this.volume = volume;
 		this.date = date;
+		this.arrayDate = this.date.split("-");
   }
 
 	public String getTicker() {
@@ -65,14 +66,23 @@ public class StockPrice implements Serializable {
 		this.volume = volume;
 	}
 
-	public Date getDate() {
+	public String getDate() {
 		return date;
 	}
 
-	public void setDate(Date date) {
-		this.date = date;
-	}
+    public void setDate(String date) {
+        this.date = date;
+        this.arrayDate = this.date.split("-");
+    }
 
+    public Integer getYear() {
+        return Integer.valueOf(this.date.split("-")[0]);
+    }
+    
+    public Integer getDay() { 
+        return Integer.valueOf(this.arrayDate[1])*100 + Integer.valueOf(this.arrayDate[2]);
+	}
+	
 	@Override
 	public String toString() {
 		return this.getTicker() + "," + this.getClose() + "," + this.getLowThe() + "," + this.getHighThe() + ","

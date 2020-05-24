@@ -1,7 +1,6 @@
 package spark.dataframe;
 
 import java.io.Serializable;
-import java.util.Date;
 
 public class CompleteStock implements Serializable {
 
@@ -10,7 +9,8 @@ public class CompleteStock implements Serializable {
     private String sector;
     private double close;
     private long volume;
-    private Date date;
+    private String date;
+    private String[] arrayDate;
 
     public CompleteStock() {
         ticker = "";
@@ -18,13 +18,14 @@ public class CompleteStock implements Serializable {
         sector = "";
     }
 
-    public CompleteStock(String ticker, String name, String sector, double close, long volume, Date date) {
+    public CompleteStock(String ticker, String name, String sector, double close, long volume, String date) {
         this.ticker = ticker;
         this.name = name;
         this.sector = sector;
         this.close = close;
         this.volume = volume;
         this.date = date;
+        this.arrayDate = this.date.split("-");
     }
 
     public String getTicker() {
@@ -59,12 +60,21 @@ public class CompleteStock implements Serializable {
         this.volume = volume;
     }
 
-    public Date getDate() {
+    public String getDate() {
         return date;
     }
 
-    public void setDate(Date date) {
+    public void setDate(String date) {
         this.date = date;
+        this.arrayDate = this.date.split("-");
+    }
+
+    public Integer getYear() {
+        return Integer.valueOf(this.date.split("-")[0]);
+    }
+    
+    public Integer getDay() { 
+        return Integer.valueOf(this.arrayDate[1])*100 + Integer.valueOf(this.arrayDate[2]);
     }
 
     @Override
