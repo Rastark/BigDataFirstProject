@@ -48,14 +48,15 @@ public class Job2 {
             snp._2().getDate()));
             
         //Job2a    
-        JavaPairRDD<Tuple2<String, Integer>, CompleteStock> completeStocksBySectorDate = completeStocksByTicker
+        JavaPairRDD<Tuple2<String, Integer>, CompleteStock> completeStocksBySectorYear = completeStocksByTicker
             .mapToPair(cst -> new Tuple2<>(new Tuple2<>(cst._2().getSector(), cst._2().getDate().getYear()), cst._2())); 
 
-        JavaPairRDD<Tuple2<String, Date>, Tuple2<Long, Long>> volumesBySectorDate = completeStocksBySectorDate.mapValues(v -> new Tuple2<>(v.getVolume(), Long.valueOf(1))); 
-        JavaPairRDD<Tuple2<String, Date>, Tuple2<Long, Long>> totalSectorDateVolumes = volumesBySectorDate.reduceByKey((v1, v2) -> new Tuple2<>(v1._1() + v2._1(), v1._2() + v2._2()));
-        JavaPairRDD<Tuple2<String, Date>, Double> meanSectorDateVolumes = totalSectorDateVolumes.mapValues(v -> Double.valueOf(v._1()) / v._2());    
+        JavaPairRDD<Tuple2<String, Integer>, Tuple2<Long, Long>> volumesBySectorYear = completeStocksBySectorYear.mapValues(v -> new Tuple2<>(v.getVolume(), Long.valueOf(1))); 
+        JavaPairRDD<Tuple2<String, Integer>, Tuple2<Long, Long>> totalSectorDateVolumes = volumesBySectorYear.reduceByKey((v1, v2) -> new Tuple2<>(v1._1() + v2._1(), v1._2() + v2._2()));
+        JavaPairRDD<Tuple2<String, Integer>, Double> meanSectorDateVolumes = totalSectorDateVolumes.mapValues(v -> Double.valueOf(v._1()) / v._2());    
 
         //Jon2b
+        JavaPaiRdd
 
     //     // Job1a
     //     JavaPairRDD<String, Tuple2<Double,Date>> tickerMap = stockPrices.mapToPair(sp -> new Tuple2<>(sp.getTicker(), new Tuple2<>(sp.getClose(), sp.getDate())));
