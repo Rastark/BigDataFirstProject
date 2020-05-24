@@ -8,13 +8,11 @@ import org.apache.spark.sql.SparkSession;
 
 import scala.Tuple2;
 import spark.dataframe.StockPrice;
+import spark.dataframe.StockName;
 import spark.parser.StocksParser;
 
-/**
- * Launches MapJoinJob
- *
- */
-public class App {
+
+public class Job2 {
 
     private static final Pattern SPACE = Pattern.compile("\t");
 
@@ -29,10 +27,17 @@ public class App {
         SparkSession spark = SparkSession.builder().appName("BigDataProject").getOrCreate();
 
         // Import and Map creation
-        JavaRDD<String> lines = spark.read().textFile(args[0]).javaRDD();
+        JavaRDD<String> priceLines = spark.read().textFile(args[0]).javaRDD();
+        JavaRDD<String> stockLines = spark.read().textFile(args[1]).javaRDD();
         
-        JavaRDD<StockPrice> stockPrices = StocksParser.parseFileLineToStockPrice(lines);  
-        
+        JavaRDD<StockPrice> stockPrices = StocksParser.parseFileLineToStockPrice(priceLines);  
+        JavaRDD<StockName> stockNames = StocksParser.parseFileLineToStock(stockLines);
+
+        //Join
+        JavaPairRDD<String, StockName> stockNamesByTicker = stockNames.keyBy((StockName::getTicker));
+        JavaPairRDD<String, StockPrice> stockPricesByTicker = stockPrices.keyBy((StockPrice::getTicker));
+        JavaPairRDD<String, Tuple2<StockName, StockPrice>> stockNamePrices = stockNamesByTicker.join(stockPricesByTicker);
+
         // Job1a
         JavaPairRDD<String, Tuple2<Double,Date>> tickerMap = stockPrices.mapToPair(sp -> new Tuple2<>(sp.getTicker(), new Tuple2<>(sp.getClose(), sp.getDate())));
 
@@ -51,35 +56,15 @@ public class App {
         JavaPairRDD<String, Double> minTickerPrices = lowPrices.reduceByKey((mpv1, mpv2) -> Math.min(mpv1, mpv2));
         JavaPairRDD<String, Double> maxTickerPrices = highPrices.reduceByKey((mpv1, mpv2) -> Math.max(mpv1, mpv2));
 
-        //Job1f
+        //Job2a
         JavaPairRDD<String, Tuple2<Long, Integer>> volumes = stockPrices.mapToPair(sp -> new Tuple2<>(sp.getTicker(), new Tuple2<>(sp.getVolume(), Integer.valueOf(1))));    
         JavaPairRDD<String, Tuple2<Long, Integer>> totalTickerVolumes = volumes.reduceByKey((v1, v2) -> new Tuple2<>(v1._1() + v2._1(), v1._2() + v2._2()));
         JavaPairRDD<String, Double> meanTickerVolumes = totalTickerVolumes.mapValues(v -> Double.valueOf(v._1())/ v._2());    
 
-        // JavaRDD<String> words = lines.flatMap(s -> Arrays.asList(SPACE.split(s)).iterator());
-        
-        // // Reduce creation
-        // JavaPairRDD<String, Integer> ones = words.mapToPair(s -> new Tuple2<>(s, 1));
-
-        // JavaPairRDD<String, Integer> counts = ones.reduceByKey((i1, i2) -> i1 + i2);
-
-        // // Output Result
-        // List<Tuple2<String, Integer>> output = counts.collect();
-
-        // for (Tuple2<?, ?> tuple : output) {
-        //     System.out.println(tuple._1() + ": " + tuple._2());
-        // }
-
         // Spark Session termination
 
-       
         JavaPairRDD<String, Tuple2<Tuple2<Tuple2<Double, Double>,Double>,Double>> result = 
             quotationChanges.join(minTickerPrices).join(maxTickerPrices).join(meanTickerVolumes);
-
-        // JavaRDD<Tuple2<Tuple2<Tuple2<Tuple2<String, Double>, Double>, Double>, Double>> orderedResult = 
-        //     result.map((k,v) -> new Tuple2<>(k,v));
-
-        // JavaRDD<Tuple2<Tuple2<Tuple2<Tuple2<String, Double>, Double>, Double>, Double>> singleRDDResult = (JavaRDD<?>)JavaPairRDD.toRDD(result);
 
         result.sortByKey().coalesce(1).saveAsTextFile(args[1]);
 
@@ -101,9 +86,5 @@ public class App {
         return quotationChangeDouble;
     }
 
-    // public JavaPairRDD<String, Integer> filterOnDate(JavaRDD<StockPrice> stockprices, int x) {
-
-    //     JavaPairRDD<String, Integer> filtered = stockprices.filter(couple -> couple._2() > x);
-    //     return filtered;
-    // };
+    
 }
