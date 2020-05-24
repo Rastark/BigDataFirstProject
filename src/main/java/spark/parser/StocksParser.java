@@ -13,11 +13,8 @@ import java.util.Iterator;
 // import com.opencsv.CSVParserBuilder;
 import com.univocity.parsers.csv.CsvFormat;
 
-import org.apache.commons.csv.*;
-import org.apache.spark.api.java.JavaPairRDD;
 import org.apache.spark.api.java.JavaRDD;
 
-import scala.Tuple4;
 import spark.dataframe.StockPrice;
 import spark.dataframe.StockName;
 

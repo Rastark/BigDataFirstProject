@@ -7,8 +7,7 @@ import org.apache.spark.api.java.*;
 import org.apache.spark.sql.SparkSession;
 
 import scala.Tuple2;
-import spark.dataframe.StockPrice;
-import spark.dataframe.StockName;
+import spark.dataframe.*;
 import spark.parser.StocksParser;
 
 
@@ -37,6 +36,14 @@ public class Job2 {
         JavaPairRDD<String, StockName> stockNamesByTicker = stockNames.keyBy((StockName::getTicker));
         JavaPairRDD<String, StockPrice> stockPricesByTicker = stockPrices.keyBy((StockPrice::getTicker));
         JavaPairRDD<String, Tuple2<StockName, StockPrice>> stockNamePrices = stockNamesByTicker.join(stockPricesByTicker);
+
+        JavaPairRDD<String, CompleteStock> completeStocksByTicker = stockNamePrices.mapValues(snp -> new CompleteStock(
+            snp._1().getTicker(),
+            snp._1().getName(),
+            snp._1().getSector(),
+            snp._2().getClose(),
+            snp._2().getVolume(),
+            snp._2().getDate()));
 
         // Job1a
         JavaPairRDD<String, Tuple2<Double,Date>> tickerMap = stockPrices.mapToPair(sp -> new Tuple2<>(sp.getTicker(), new Tuple2<>(sp.getClose(), sp.getDate())));
