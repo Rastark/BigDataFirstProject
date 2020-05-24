@@ -1,6 +1,8 @@
 package spark;
 
+import java.util.Calendar;
 import java.util.Date;
+import java.util.Map;
 import java.util.regex.Pattern;
 
 import org.apache.spark.api.java.*;
@@ -44,54 +46,62 @@ public class Job2 {
             snp._2().getClose(),
             snp._2().getVolume(),
             snp._2().getDate()));
+            
+        //Job2a    
+        JavaPairRDD<Tuple2<String, Integer>, CompleteStock> completeStocksBySectorDate = completeStocksByTicker
+            .mapToPair(cst -> new Tuple2<>(new Tuple2<>(cst._2().getSector(), cst._2().getDate().getYear()), cst._2())); 
 
-        // Job1a
-        JavaPairRDD<String, Tuple2<Double,Date>> tickerMap = stockPrices.mapToPair(sp -> new Tuple2<>(sp.getTicker(), new Tuple2<>(sp.getClose(), sp.getDate())));
+        JavaPairRDD<Tuple2<String, Date>, Tuple2<Long, Long>> volumesBySectorDate = completeStocksBySectorDate.mapValues(v -> new Tuple2<>(v.getVolume(), Long.valueOf(1))); 
+        JavaPairRDD<Tuple2<String, Date>, Tuple2<Long, Long>> totalSectorDateVolumes = volumesBySectorDate.reduceByKey((v1, v2) -> new Tuple2<>(v1._1() + v2._1(), v1._2() + v2._2()));
+        JavaPairRDD<Tuple2<String, Date>, Double> meanSectorDateVolumes = totalSectorDateVolumes.mapValues(v -> Double.valueOf(v._1()) / v._2());    
 
-        // Job1b
-        JavaPairRDD<String, Tuple2<Double,Date>> minTickerDateClose = tickerMap.reduceByKey((mpv1, mpv2) -> minDateClose(mpv1, mpv2));
-        JavaPairRDD<String, Tuple2<Double,Date>> maxTickerDateClose = tickerMap.reduceByKey((mpv1, mpv2) -> maxDateClose(mpv1, mpv2));
+        //Jon2b
 
-        JavaPairRDD<String, Tuple2<Tuple2<Double,Date>,Tuple2<Double,Date>>> joinTickerDateClose = minTickerDateClose.join(maxTickerDateClose);
+    //     // Job1a
+    //     JavaPairRDD<String, Tuple2<Double,Date>> tickerMap = stockPrices.mapToPair(sp -> new Tuple2<>(sp.getTicker(), new Tuple2<>(sp.getClose(), sp.getDate())));
+
+    //     // Job1b
+    //     JavaPairRDD<String, Tuple2<Double,Date>> minTickerDateClose = tickerMap.reduceByKey((mpv1, mpv2) -> minDateClose(mpv1, mpv2));
+    //     JavaPairRDD<String, Tuple2<Double,Date>> maxTickerDateClose = tickerMap.reduceByKey((mpv1, mpv2) -> maxDateClose(mpv1, mpv2));
+
+    //     JavaPairRDD<String, Tuple2<Tuple2<Double,Date>,Tuple2<Double,Date>>> joinTickerDateClose = minTickerDateClose.join(maxTickerDateClose);
         
-        JavaPairRDD<String, Double> quotationChanges = joinTickerDateClose.mapValues(mpt -> quotationChange(mpt));
+    //     JavaPairRDD<String, Double> quotationChanges = joinTickerDateClose.mapValues(mpt -> quotationChange(mpt));
 
-        // Job1c-e 
-        JavaPairRDD<String, Double> lowPrices = stockPrices.mapToPair(sp -> new Tuple2<>(sp.getTicker(), sp.getLowThe()));
-        JavaPairRDD<String, Double> highPrices = stockPrices.mapToPair(sp -> new Tuple2<>(sp.getTicker(), sp.getHighThe()));
+    //     // Job1c-e 
+    //     JavaPairRDD<String, Double> lowPrices = stockPrices.mapToPair(sp -> new Tuple2<>(sp.getTicker(), sp.getLowThe()));
+    //     JavaPairRDD<String, Double> highPrices = stockPrices.mapToPair(sp -> new Tuple2<>(sp.getTicker(), sp.getHighThe()));
         
-        JavaPairRDD<String, Double> minTickerPrices = lowPrices.reduceByKey((mpv1, mpv2) -> Math.min(mpv1, mpv2));
-        JavaPairRDD<String, Double> maxTickerPrices = highPrices.reduceByKey((mpv1, mpv2) -> Math.max(mpv1, mpv2));
+    //     JavaPairRDD<String, Double> minTickerPrices = lowPrices.reduceByKey((mpv1, mpv2) -> Math.min(mpv1, mpv2));
+    //     JavaPairRDD<String, Double> maxTickerPrices = highPrices.reduceByKey((mpv1, mpv2) -> Math.max(mpv1, mpv2));
 
-        //Job2a
-        JavaPairRDD<String, Tuple2<Long, Integer>> volumes = stockPrices.mapToPair(sp -> new Tuple2<>(sp.getTicker(), new Tuple2<>(sp.getVolume(), Integer.valueOf(1))));    
-        JavaPairRDD<String, Tuple2<Long, Integer>> totalTickerVolumes = volumes.reduceByKey((v1, v2) -> new Tuple2<>(v1._1() + v2._1(), v1._2() + v2._2()));
-        JavaPairRDD<String, Double> meanTickerVolumes = totalTickerVolumes.mapValues(v -> Double.valueOf(v._1())/ v._2());    
 
-        // Spark Session termination
 
-        JavaPairRDD<String, Tuple2<Tuple2<Tuple2<Double, Double>,Double>,Double>> result = 
-            quotationChanges.join(minTickerPrices).join(maxTickerPrices).join(meanTickerVolumes);
+    //     // Spark Session termination
 
-        result.sortByKey().coalesce(1).saveAsTextFile(args[1]);
+    //     JavaPairRDD<String, Tuple2<Tuple2<Tuple2<Double, Double>,Double>,Double>> result = 
+    //         quotationChanges.join(minTickerPrices).join(maxTickerPrices).join(meanTickerVolumes);
 
-        spark.stop();
-    }
+    //     result.sortByKey().coalesce(1).saveAsTextFile(args[1]);
 
-    public static Tuple2<Double, Date> maxDateClose(Tuple2<Double, Date> t1, Tuple2<Double, Date> t2) { 
-        return t1._2().compareTo(t2._2()) > 0 ? t1 : t2;
-    }
+    //     spark.stop();
+    // }
 
-    public static Tuple2<Double, Date> minDateClose(Tuple2<Double, Date> t1, Tuple2<Double, Date> t2) { 
-        return t1._2().compareTo(t2._2()) < 0 ? t1 : t2;
-    }
+    // public static Tuple2<Double, Date> maxDateClose(Tuple2<Double, Date> t1, Tuple2<Double, Date> t2) { 
+    //     return t1._2().compareTo(t2._2()) > 0 ? t1 : t2;
+    // }
 
-    public static Double quotationChange(Tuple2<Tuple2<Double, Date>, Tuple2<Double, Date>> t) {
-        double firstClose = t._1._1();
-        double lastClose = t._2._1();
-        double quotationChangeDouble = (lastClose - firstClose) / firstClose * 100;
-        return quotationChangeDouble;
-    }
+    // public static Tuple2<Double, Date> minDateClose(Tuple2<Double, Date> t1, Tuple2<Double, Date> t2) { 
+    //     return t1._2().compareTo(t2._2()) < 0 ? t1 : t2;
+    // }
+
+    // public static Double quotationChange(Tuple2<Tuple2<Double, Date>, Tuple2<Double, Date>> t) {
+    //     double firstClose = t._1._1();
+    //     double lastClose = t._2._1();
+    //     double quotationChangeDouble = (lastClose - firstClose) / firstClose * 100;
+    //     return quotationChangeDouble;
+    // }
 
     
+    }
 }

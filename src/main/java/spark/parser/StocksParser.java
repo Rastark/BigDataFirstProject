@@ -1,17 +1,12 @@
 package spark.parser;
 
 import java.io.IOException;
-import java.io.Reader;
-import java.nio.file.Files;
-import java.nio.file.Paths;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.Arrays;
-import java.util.Iterator;
 
 // import com.opencsv.CSVParser;
 // import com.opencsv.CSVParserBuilder;
-import com.univocity.parsers.csv.CsvFormat;
 
 import org.apache.spark.api.java.JavaRDD;
 
