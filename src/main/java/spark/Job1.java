@@ -1,6 +1,5 @@
 package spark;
 
-import java.util.Date;
 import java.util.regex.Pattern;
 
 import org.apache.spark.api.java.*;
@@ -12,8 +11,6 @@ import spark.parser.StocksParser;
 
 
 public class Job1 {
-
-    private static final Pattern SPACE = Pattern.compile("\t");
 
     public static void main(final String[] args) throws Exception {
 

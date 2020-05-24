@@ -11,8 +11,6 @@ import spark.parser.StocksParser;
 
 public class Job2 {
 
-    private static final Pattern SPACE = Pattern.compile("\t");
-
     public static void main(final String[] args) throws Exception {
 
         if (args.length < 1) {
@@ -26,7 +24,7 @@ public class Job2 {
         // Import and Map creation
         JavaRDD<String> priceLines = spark.read().textFile(args[0]).javaRDD();
         JavaRDD<StockPrice> stockPrices = StocksParser.parseFileLineToStockPrice(priceLines).cache();
-            
+
         JavaRDD<String> stockLines = spark.read().textFile(args[1]).javaRDD();
         JavaRDD<StockName> stockNames = StocksParser.parseFileLineToStock(stockLines).cache();
 
