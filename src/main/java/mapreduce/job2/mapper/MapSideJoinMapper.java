@@ -31,16 +31,17 @@ public class MapSideJoinMapper extends Mapper<LongWritable, Text, Text, Text> {
     protected void setup(Context context) throws IOException, InterruptedException {
 
         URI[] cacheFiles = context.getCacheFiles();
+        String filePath;
 
         for (URI eachURI : cacheFiles) {
-            if (eachURI.getPath().trim().equals("input/hss_cleaned.tsv")) {
+            filePath = new Path(eachURI.getPath().trim()).getName();
+            if(filePath.equals("hss_cleaned.tsv"))
+                loadFileHashMap(filePath, context);
                 context.getCounter(MYCOUNTER.HS_FILE_EXISTS).increment(1);
-                loadFileHashMap(new Path("hss_cleaned.tsv"), context);
-            }
         }
     }
 
-    private void loadFileHashMap(Path filePath, Context context) throws IOException {
+    private void loadFileHashMap(String filePath, Context context) throws IOException {
 
         String strLineRead = "";
 

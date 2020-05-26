@@ -1,5 +1,7 @@
 package spark;
 
+import java.util.Comparator;
+
 import org.apache.spark.api.java.JavaPairRDD;
 import org.apache.spark.api.java.JavaRDD;
 import org.apache.spark.sql.SparkSession;
@@ -62,7 +64,14 @@ public class Job3 {
                 .join(maxDateCloseByTickerYear);
 
         JavaPairRDD<Tuple2<String, Integer>, Double> quotationChanges = joinDateCloseByTickerYear
-            .mapValues(mpt -> quotationChange(mpt)).sortByKey(false);
+            .mapValues(mpt -> quotationChange(mpt)).sortByKey(new Comparator<Tuple2<String, Integer>>() {
+                public int compare(Tuple2<String, Integer> t1, Tuple2<String, Integer> t2) {
+                    int cmp = t2._1().compareTo(t1._1());
+                    if(cmp !=  0) return cmp;
+                    return t2._2().compareTo(t1._2());
+                }
+            },
+            false);
 
         // Ticker-andamento    
         JavaPairRDD<String, Tuple2<String, StockName>> qc = quotationChanges

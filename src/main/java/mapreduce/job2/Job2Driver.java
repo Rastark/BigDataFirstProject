@@ -3,8 +3,6 @@ package mapreduce.job2;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.util.ToolRunner;
 
-import mapreduce.job2.SectorYearJob;
-
 /**
  * Launches MapJoinJob
  *

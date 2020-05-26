@@ -19,18 +19,18 @@ public class Reducer2 extends Reducer<Text, Text, Text, Text> {
          * values are in the form 'year:change' */
 
         List<Text> trends = new LinkedList<>();
-        System.out.print("<" + key.toString() + "> , <");
+        // System.out.print("<" + key.toString() + "> , <");
         for (Text val : values) {
             trends.add(new Text(val));
-            System.out.print(val + ", ");
+            // System.out.print(val + ", ");
         }
-        System.out.println(">");
+        // System.out.println(">");
 
         // trends = sortTrends(trends);
         Collections.sort(trends, Collections.reverseOrder());
         
         trends = lastThreeYears(trends);
-        System.out.println("<" + key.toString() + "> ==> { " + trends + " }");
+        // System.out.println("<" + key.toString() + "> ==> { " + trends + " }");
         String formattedTrends = listToString(trends);
         
         outputvalue.set(formattedTrends);

@@ -22,7 +22,6 @@ public class MapSideJoinMapper extends Mapper<LongWritable, Text, Text, Text> {
     private String strFileSector = "";
     private Text txtMapOutputKey = new Text("");
     private Text txtMapOutputValue = new Text("");
-    // private String ciccio = "";
 
     public enum MYCOUNTER {
         RECORD_COUNT, HS_FILE_EXISTS, HSP_FILE_EXISTS, FILE_NOT_FOUND, SOME_OTHER_ERROR
@@ -31,18 +30,18 @@ public class MapSideJoinMapper extends Mapper<LongWritable, Text, Text, Text> {
     @Override
     protected void setup(Context context) throws IOException, InterruptedException {
 
+        String filePath;
         URI[] cacheFiles = context.getCacheFiles();
 
         for (URI eachURI : cacheFiles) {
-            if (eachURI.getPath().trim().equals("input/dataset-1/hss_cleaned.tsv")) {
+            filePath = new Path(eachURI.getPath().trim()).getName();
+            if(filePath.equals("hss_cleaned.tsv"))
+                loadFileHashMap(filePath, context);
                 context.getCounter(MYCOUNTER.HS_FILE_EXISTS).increment(1);
-                loadFileHashMap(new Path("hss_cleaned.tsv"), context);
-                // this.ciccio = (new Path(eachURI.getPath()).toString());
-            }
         }
     }
 
-    private void loadFileHashMap(Path filePath, Context context) throws IOException {
+    private void loadFileHashMap(String filePath, Context context) throws IOException {
 
         String strLineRead = "";
 
@@ -50,11 +49,9 @@ public class MapSideJoinMapper extends Mapper<LongWritable, Text, Text, Text> {
             brReader = new BufferedReader(new FileReader(filePath.toString()));
 
             // Read each line, split and load to HashMap
-            // System.out.println(brReader.readLine());
             while ((strLineRead = brReader.readLine()) != null) {
                 String cachedArray[] = strLineRead.split("\t");
                 String cachedValues[] = Arrays.copyOfRange(cachedArray, 1, cachedArray.length);
-                // System.out.println(cachedValues.toString());
                 FileMap.put(cachedArray[0].trim(), cachedValues);
             }
         } catch (FileNotFoundException e) {

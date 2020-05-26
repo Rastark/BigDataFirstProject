@@ -5,6 +5,8 @@ import java.io.IOException;
 import org.apache.hadoop.io.Text;
 import org.apache.hadoop.mapreduce.Mapper;
 
+import mapreduce.finput.HsHspJoinFields;
+
 public class Mapper1 extends Mapper<Object, Text, Text, Text> {
 
     private Text outputkey = new Text();
