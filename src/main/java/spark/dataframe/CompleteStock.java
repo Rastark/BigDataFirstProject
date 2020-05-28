@@ -9,8 +9,8 @@ public class CompleteStock implements Serializable {
     private String sector;
     private double close;
     private long volume;
-    private String date;
-    private String[] arrayDate;
+    private int year;
+    private int day;
 
     public CompleteStock() {
         ticker = "";
@@ -18,14 +18,14 @@ public class CompleteStock implements Serializable {
         sector = "";
     }
 
-    public CompleteStock(String ticker, String name, String sector, double close, long volume, String date) {
+    public CompleteStock(String ticker, String name, String sector, double close, long volume, int year, int day) {
         this.ticker = ticker;
         this.name = name;
         this.sector = sector;
         this.close = close;
         this.volume = volume;
-        this.date = date;
-        this.arrayDate = this.date.split("-");
+        this.year = year;
+        this.day = day;
     }
 
     public String getTicker() {
@@ -60,27 +60,11 @@ public class CompleteStock implements Serializable {
         this.volume = volume;
     }
 
-    public String getDate() {
-        return date;
-    }
-
-    public void setDate(String date) {
-        this.date = date;
-        this.arrayDate = this.date.split("-");
-    }
-
-    public Integer getYear() {
-        return Integer.parseInt(this.date.split("-")[0]);
-    }
-    
-    public Integer getDay() { 
-        return Integer.parseInt(this.arrayDate[1])*100 + Integer.parseInt(this.arrayDate[2]);
-    }
 
     @Override
     public String toString() {
         return this.getTicker() + "," + this.getName() + "," + this.getSector() + "," + this.getClose() + "," + this.getVolume() + ","
-                + this.getDate();
+                + this.getYear() + this.getDay();
     }
 
     public String getSector() {
@@ -91,6 +75,22 @@ public class CompleteStock implements Serializable {
         this.sector = sector;
     }
 
+    public int getYear() {
+        return year;
+    }
+
+    public void setYear(int year) {
+        this.year = year;
+    }
+
+    public int getDay() {
+        return day;
+    }
+
+    public void setDay(int day) {
+        this.day = day;
+    }
+
     @Override
     public int hashCode() {
         final int prime = 31;
@@ -98,11 +98,12 @@ public class CompleteStock implements Serializable {
         long temp;
         temp = Double.doubleToLongBits(close);
         result = prime * result + (int) (temp ^ (temp >>> 32));
-        result = prime * result + ((date == null) ? 0 : date.hashCode());
+        result = prime * result + day;
         result = prime * result + ((name == null) ? 0 : name.hashCode());
         result = prime * result + ((sector == null) ? 0 : sector.hashCode());
         result = prime * result + ((ticker == null) ? 0 : ticker.hashCode());
         result = prime * result + (int) (volume ^ (volume >>> 32));
+        result = prime * result + year;
         return result;
     }
 
@@ -117,10 +118,7 @@ public class CompleteStock implements Serializable {
         CompleteStock other = (CompleteStock) obj;
         if (Double.doubleToLongBits(close) != Double.doubleToLongBits(other.close))
             return false;
-        if (date == null) {
-            if (other.date != null)
-                return false;
-        } else if (!date.equals(other.date))
+        if (day != other.day)
             return false;
         if (name == null) {
             if (other.name != null)
@@ -138,6 +136,8 @@ public class CompleteStock implements Serializable {
         } else if (!ticker.equals(other.ticker))
             return false;
         if (volume != other.volume)
+            return false;
+        if (year != other.year)
             return false;
         return true;
     }

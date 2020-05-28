@@ -1,4 +1,4 @@
-package spark.parser;
+package spark.utils;
 
 import java.io.IOException;
 import java.util.Arrays;
@@ -25,7 +25,8 @@ public class StocksParser {
                     Double.parseDouble(fl.split("\t")[2]),
                     Double.parseDouble(fl.split("\t")[3]),
                     Long.parseLong(fl.split("\t")[4]),
-                    fl.split("\t")[5]));
+                    Integer.parseInt(fl.split("\t")[5].split("-")[0]),
+                    (Integer.parseInt(fl.split("\t")[5].split("-")[1])*100 + Integer.parseInt(fl.split("\t")[5].split("-")[2]))));
                     return fileLineRDD;
             }
 

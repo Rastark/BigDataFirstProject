@@ -5,13 +5,14 @@ import java.util.Comparator;
 import org.apache.spark.api.java.JavaPairRDD;
 import org.apache.spark.api.java.JavaRDD;
 import org.apache.spark.sql.SparkSession;
+import org.apache.spark.storage.StorageLevel;
 
 import scala.Tuple2;
 import scala.Tuple3;
 import spark.dataframe.CompleteStock;
 import spark.dataframe.StockName;
 import spark.dataframe.StockPrice;
-import spark.parser.StocksParser;
+import spark.utils.StocksParser;
 
 public class Job3 {
 
@@ -33,7 +34,7 @@ public class Job3 {
         JavaRDD<StockName> stockNames = StocksParser.parseFileLineToStock(stockLines);
         
         //Join
-        JavaPairRDD<String, StockName> stockNamesByTicker = stockNames.keyBy((StockName::getTicker));
+        JavaPairRDD<String, StockName> stockNamesByTicker = stockNames.keyBy((StockName::getTicker)).persist(StorageLevel.MEMORY_ONLY_SER());
         JavaPairRDD<String, StockPrice> stockPricesByTicker = stockPrices.keyBy((StockPrice::getTicker));
         JavaPairRDD<String, Tuple2<StockName, StockPrice>> stockNamePrices = stockNamesByTicker.join(stockPricesByTicker);
 
@@ -43,7 +44,8 @@ public class Job3 {
             snp._1().getTicker(),
             snp._2().getClose(),
             snp._2().getVolume(),
-            snp._2().getDate()
+            snp._2().getYear(),
+            snp._2().getDay()
         ));
         
         // Indicizzo per ticker e anno
@@ -51,16 +53,16 @@ public class Job3 {
             .mapToPair(cst -> new Tuple2<>(new Tuple2<>(cst._2().getTicker(), cst._2().getYear()), cst._2()))
             .filter(v-> v._1()._2()==2016 || v._1()._2()==2017|| v._1()._2()==2018);
     
-        JavaPairRDD<Tuple2<String, Integer>, Tuple3<String, Double, String>> dateCloseByTickerYear = completeStocksByTickerYear
-                .mapValues(cssy -> new Tuple3<>(cssy.getName(), cssy.getClose(), cssy.getDate()));
+        JavaPairRDD<Tuple2<String, Integer>, Tuple3<String, Double, Integer>> dateCloseByTickerYear = completeStocksByTickerYear
+                .mapValues(cssy -> new Tuple3<>(cssy.getName(), cssy.getClose(), cssy.getYear()));
 
-        JavaPairRDD<Tuple2<String, Integer>, Tuple3<String, Double, String>> minDateCloseByTickerYear = dateCloseByTickerYear
+        JavaPairRDD<Tuple2<String, Integer>, Tuple3<String, Double, Integer>> minDateCloseByTickerYear = dateCloseByTickerYear
                 .reduceByKey((v1, v2) -> minDateClose3(v1, v2));
 
-        JavaPairRDD<Tuple2<String, Integer>, Tuple3<String, Double, String>> maxDateCloseByTickerYear = dateCloseByTickerYear
+        JavaPairRDD<Tuple2<String, Integer>, Tuple3<String, Double, Integer>> maxDateCloseByTickerYear = dateCloseByTickerYear
                 .reduceByKey((v1, v2) -> maxDateClose3(v1, v2));
 
-        JavaPairRDD<Tuple2<String, Integer>, Tuple2<Tuple3<String, Double, String>, Tuple3<String, Double, String>>> joinDateCloseByTickerYear = minDateCloseByTickerYear
+        JavaPairRDD<Tuple2<String, Integer>, Tuple2<Tuple3<String, Double, Integer>, Tuple3<String, Double, Integer>>> joinDateCloseByTickerYear = minDateCloseByTickerYear
                 .join(maxDateCloseByTickerYear);
 
         JavaPairRDD<Tuple2<String, Integer>, Double> quotationChanges = joinDateCloseByTickerYear
@@ -89,15 +91,15 @@ public class Job3 {
 
     }
 
-    public static Tuple3<String, Double, String> maxDateClose3(Tuple3<String, Double, String> t1, Tuple3<String, Double, String> t2) {
-        return t1._3().compareTo(t2._3()) > 0 ? t1 : t2;
+    public static Tuple3<String, Double, Integer> maxDateClose3(Tuple3<String, Double, Integer> t1, Tuple3<String, Double, Integer> t2) {
+        return t1._3() > t2._3() ? t1 : t2;
     }
 
-    public static Tuple3<String, Double, String> minDateClose3(Tuple3<String, Double, String> t1, Tuple3<String, Double, String> t2) {
-        return t1._3().compareTo(t2._3()) < 0 ? t1 : t2;
+    public static Tuple3<String, Double, Integer> minDateClose3(Tuple3<String, Double, Integer> t1, Tuple3<String, Double, Integer> t2) {
+        return t1._3() < t2._3() ? t1 : t2;
     }
 
-    public static Double quotationChange(Tuple2<Tuple3<String, Double, String>, Tuple3<String, Double, String>> t) {
+    public static Double quotationChange(Tuple2<Tuple3<String, Double, Integer>, Tuple3<String, Double, Integer>> t) {
         double firstClose = t._1._2();
         double lastClose = t._2._2();
         double quotationChangeDouble = (lastClose - firstClose) / firstClose * 100;

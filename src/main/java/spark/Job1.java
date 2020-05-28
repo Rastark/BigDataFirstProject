@@ -7,7 +7,7 @@ import org.apache.spark.sql.SparkSession;
 
 import scala.Tuple2;
 import spark.dataframe.StockPrice;
-import spark.parser.StocksParser;
+import spark.utils.StocksParser;
 
 
 public class Job1 {
@@ -28,13 +28,13 @@ public class Job1 {
         JavaRDD<StockPrice> stockPrices = StocksParser.parseFileLineToStockPrice(lines);  
         
         // Job1a
-        JavaPairRDD<String, Tuple2<Double, String>> tickerMap = stockPrices.mapToPair(sp -> new Tuple2<>(sp.getTicker(), new Tuple2<>(sp.getClose(), sp.getDate())));
+        JavaPairRDD<String, Tuple2<Double, Integer>> tickerMap = stockPrices.mapToPair(sp -> new Tuple2<>(sp.getTicker(), new Tuple2<>(sp.getClose(), sp.getYear())));
 
         // Job1b
-        JavaPairRDD<String, Tuple2<Double, String>> minTickerDateClose = tickerMap.reduceByKey((mpv1, mpv2) -> minDateClose(mpv1, mpv2));
-        JavaPairRDD<String, Tuple2<Double, String>> maxTickerDateClose = tickerMap.reduceByKey((mpv1, mpv2) -> maxDateClose(mpv1, mpv2));
+        JavaPairRDD<String, Tuple2<Double, Integer>> minTickerDateClose = tickerMap.reduceByKey((mpv1, mpv2) -> minDateClose(mpv1, mpv2));
+        JavaPairRDD<String, Tuple2<Double, Integer>> maxTickerDateClose = tickerMap.reduceByKey((mpv1, mpv2) -> maxDateClose(mpv1, mpv2));
 
-        JavaPairRDD<String, Tuple2<Tuple2<Double, String>,Tuple2<Double, String>>> joinTickerDateClose = minTickerDateClose.join(maxTickerDateClose);
+        JavaPairRDD<String, Tuple2<Tuple2<Double, Integer>,Tuple2<Double, Integer>>> joinTickerDateClose = minTickerDateClose.join(maxTickerDateClose);
         
         JavaPairRDD<String, Double> quotationChanges = joinTickerDateClose.mapValues(mpt -> quotationChange(mpt));
 
@@ -59,15 +59,15 @@ public class Job1 {
 
         spark.stop();
     }
-    public static Tuple2<Double, String> maxDateClose(Tuple2<Double, String> t1, Tuple2<Double, String> t2) {
+    public static Tuple2<Double, Integer> maxDateClose(Tuple2<Double, Integer> t1, Tuple2<Double, Integer> t2) {
         return t1._2().compareTo(t2._2()) > 0 ? t1 : t2;
     }
 
-    public static Tuple2<Double, String> minDateClose(Tuple2<Double, String> t1, Tuple2<Double, String> t2) {
+    public static Tuple2<Double, Integer> minDateClose(Tuple2<Double, Integer> t1, Tuple2<Double, Integer> t2) {
         return t1._2().compareTo(t2._2()) < 0 ? t1 : t2;
     }
 
-    public static Double quotationChange(Tuple2<Tuple2<Double, String>, Tuple2<Double, String>> t) {
+    public static Double quotationChange(Tuple2<Tuple2<Double, Integer>, Tuple2<Double, Integer>> t) {
         double firstClose = t._1._1();
         double lastClose = t._2._1();
         double quotationChangeDouble = (lastClose - firstClose) / firstClose * 100;
