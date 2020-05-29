@@ -11,6 +11,7 @@ public class StockPrice implements Serializable {
 	private long volume;
 	private int year;
 	private int day;
+	private int date;
 
 	public StockPrice() {
 		ticker = "";
@@ -24,6 +25,7 @@ public class StockPrice implements Serializable {
 		this.volume = volume;
 		this.year = year;
 		this.day = day;
+		this.date = year*10000 + day;
   }
 
 	public String getTicker() {
@@ -95,6 +97,7 @@ public class StockPrice implements Serializable {
 		long temp;
 		temp = Double.doubleToLongBits(close);
 		result = prime * result + (int) (temp ^ (temp >>> 32));
+		result = prime * result + date;
 		result = prime * result + day;
 		temp = Double.doubleToLongBits(highThe);
 		result = prime * result + (int) (temp ^ (temp >>> 32));
@@ -117,6 +120,8 @@ public class StockPrice implements Serializable {
 		StockPrice other = (StockPrice) obj;
 		if (Double.doubleToLongBits(close) != Double.doubleToLongBits(other.close))
 			return false;
+		if (date != other.date)
+			return false;
 		if (day != other.day)
 			return false;
 		if (Double.doubleToLongBits(highThe) != Double.doubleToLongBits(other.highThe))
@@ -133,6 +138,14 @@ public class StockPrice implements Serializable {
 		if (year != other.year)
 			return false;
 		return true;
+	}
+
+	public int getDate() {
+		return date;
+	}
+
+	public void setDate(int date) {
+		this.date = date;
 	}
 
 }

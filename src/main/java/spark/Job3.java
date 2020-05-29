@@ -1,7 +1,5 @@
 package spark;
 
-import java.util.Comparator;
-
 import org.apache.spark.api.java.JavaPairRDD;
 import org.apache.spark.api.java.JavaRDD;
 import org.apache.spark.sql.SparkSession;
@@ -12,6 +10,7 @@ import scala.Tuple3;
 import spark.dataframe.CompleteStock;
 import spark.dataframe.StockName;
 import spark.dataframe.StockPrice;
+import spark.utils.SerializableComparator;
 import spark.utils.StocksParser;
 
 public class Job3 {
@@ -50,40 +49,46 @@ public class Job3 {
         
         // Indicizzo per ticker e anno
         JavaPairRDD<Tuple2<String, Integer>, CompleteStock> completeStocksByTickerYear = completeStocksByTicker
-            .mapToPair(cst -> new Tuple2<>(new Tuple2<>(cst._2().getTicker(), cst._2().getYear()), cst._2()))
-            .filter(v-> v._1()._2()==2016 || v._1()._2()==2017|| v._1()._2()==2018);
+            .mapToPair(cst -> new Tuple2<>(new Tuple2<>(cst._2.getTicker(), cst._2.getYear()), cst._2()))
+            .filter(v-> v._1._2()==2016 || v._1._2()==2017 || v._1._2()==2018);
     
         JavaPairRDD<Tuple2<String, Integer>, Tuple3<String, Double, Integer>> dateCloseByTickerYear = completeStocksByTickerYear
-                .mapValues(cssy -> new Tuple3<>(cssy.getName(), cssy.getClose(), cssy.getYear()));
+                .mapValues(cssy -> new Tuple3<>(cssy.getName(), cssy.getClose(), cssy.getDay()));
 
-        JavaPairRDD<Tuple2<String, Integer>, Tuple3<String, Double, Integer>> minDateCloseByTickerYear = dateCloseByTickerYear
-                .reduceByKey((v1, v2) -> minDateClose3(v1, v2));
+        // JavaPairRDD<Tuple2<String, Integer>, Tuple3<String, Double, Integer>> minDateCloseByTickerYear = dateCloseByTickerYear
+        //         .reduceByKey((v1, v2) -> minDateClose3(v1, v2));
 
-        JavaPairRDD<Tuple2<String, Integer>, Tuple3<String, Double, Integer>> maxDateCloseByTickerYear = dateCloseByTickerYear
-                .reduceByKey((v1, v2) -> maxDateClose3(v1, v2));
+        // JavaPairRDD<Tuple2<String, Integer>, Tuple3<String, Double, Integer>> maxDateCloseByTickerYear = dateCloseByTickerYear
+        //         .reduceByKey((v1, v2) -> maxDateClose3(v1, v2));
 
-        JavaPairRDD<Tuple2<String, Integer>, Tuple2<Tuple3<String, Double, Integer>, Tuple3<String, Double, Integer>>> joinDateCloseByTickerYear = minDateCloseByTickerYear
-                .join(maxDateCloseByTickerYear);
+        // JavaPairRDD<Tuple2<String, Integer>, Tuple2<Tuple3<String, Double, Integer>, Tuple3<String, Double, Integer>>> joinDateCloseByTickerYear = minDateCloseByTickerYear
+        //         .join(maxDateCloseByTickerYear);
 
-        JavaPairRDD<Tuple2<String, Integer>, Double> quotationChanges = joinDateCloseByTickerYear
-            .mapValues(mpt -> quotationChange(mpt)).sortByKey(new Comparator<Tuple2<String, Integer>>() {
-                public int compare(Tuple2<String, Integer> t1, Tuple2<String, Integer> t2) {
-                    int cmp = t2._1().compareTo(t1._1());
-                    if(cmp !=  0) return cmp;
-                    return t2._2().compareTo(t1._2());
-                }
-            },
-            false);
+        JavaPairRDD<Tuple2<String, Integer>, Tuple2<Tuple3<String, Double, Integer>, Tuple3<String, Double, Integer>>>  minMaxDateCloseByTickerYear = 
+            dateCloseByTickerYear.mapValues(v -> new Tuple2<>(v, v))
+            .reduceByKey((v1, v2) -> new Tuple2<>(minDateClose3(v1._1(), v2._2()), maxDateClose3(v1._1(), v2._2())));
+
+        JavaPairRDD<Tuple2<String, Integer>, Integer> quotationChanges = minMaxDateCloseByTickerYear
+            .mapValues(v -> Integer.valueOf(round(quotationChange(v))))
+                .sortByKey(new SerializableComparator<Tuple2<String, Integer>>() {
+                    public int compare(Tuple2<String, Integer> t1, Tuple2<String, Integer> t2) {
+                        int cmp = t2._1().compareTo(t1._1());
+                        if(cmp !=  0) return cmp;
+                        return t2._2().compareTo(t1._2());
+                    }
+                },
+                false);
 
         // Ticker-andamento    
         JavaPairRDD<String, Tuple2<String, StockName>> qc = quotationChanges
-            .mapToPair(v -> new Tuple2<>(v._1()._1(), v._1()._2() + ":" + v._2()))
+            .mapToPair(v -> new Tuple2<>(v._1._1(), v._1._2() + ":" + v._2() + "%"))
             .reduceByKey((v1, v2) -> v1 + "," + v2)
             .join(stockNamesByTicker);
 
         JavaPairRDD<String, String> result = qc
-            .mapToPair(v -> new Tuple2<>(v._2()._1(), v._2()._2().getName()))
-            .reduceByKey((v1, v2) -> v1 + "," + v2);
+            .mapToPair(v -> new Tuple2<>(v._2._1(), v._2._2().getName()))
+            .reduceByKey((v1, v2) -> v1 + "," + v2)
+            .mapToPair(v -> new Tuple2<>(v._2(), v._1()));
 
         result.coalesce(1).saveAsTextFile(args[2]);
 
@@ -104,6 +109,12 @@ public class Job3 {
         double lastClose = t._2._2();
         double quotationChangeDouble = (lastClose - firstClose) / firstClose * 100;
         return quotationChangeDouble;
+    }
+
+    private static int round(double n) {
+        n += 0.5;
+        n = Math.floor(n);
+        return (int) n;
     }
     
 }

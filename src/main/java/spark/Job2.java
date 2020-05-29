@@ -47,8 +47,14 @@ public class Job2 {
         JavaPairRDD<String, StockPrice> stockPricesByTicker = stockPrices.keyBy((StockPrice::getTicker));
 
         JavaPairRDD<String, CompleteStock> completeStocksByTicker = stockNamesByTicker.join(stockPricesByTicker)
-            .mapValues(snp -> new CompleteStock(snp._1().getTicker(), snp._1().getName(), snp._1().getSector(),
-                snp._2().getClose(), snp._2().getVolume(), snp._2().getYear(), snp._2().getDay()));
+            .mapValues(snp -> new CompleteStock(
+                snp._1().getTicker(), 
+                snp._1().getName(), 
+                snp._1().getSector(),
+                snp._2().getClose(), 
+                snp._2().getVolume(), 
+                snp._2().getYear(), 
+                snp._2().getDay()));
 
         // JavaPairRDD<String, CompleteStock> completeStocksByTicker = stockNamePrices
 

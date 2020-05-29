@@ -35,9 +35,10 @@ public class MapSideJoinMapper extends Mapper<LongWritable, Text, Text, Text> {
 
         for (URI eachURI : cacheFiles) {
             filePath = new Path(eachURI.getPath().trim()).getName();
-            if(filePath.equals("hss_cleaned_4.tsv"))
+            if(filePath.equals("hss_cleaned.tsv"))
                 loadFileHashMap(filePath, context);
                 context.getCounter(MYCOUNTER.HS_FILE_EXISTS).increment(1);
+                break;
         }
     }
 
