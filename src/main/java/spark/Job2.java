@@ -5,6 +5,8 @@ import org.apache.spark.sql.SparkSession;
 import org.apache.spark.storage.StorageLevel;
 
 import scala.Tuple2;
+import scala.Tuple3;
+import scala.Tuple4;
 import spark.dataframe.*;
 import spark.utils.SerializableComparator;
 import spark.utils.StocksParser;
@@ -17,21 +19,8 @@ public class Job2 {
             System.err.println("Usage: <commandName> <file>");
             System.exit(1);
         }
-
-        // Spark session creation
-        // SparkConf conf = new SparkConf()
-        // .set("spark.master", "local")
-        // .set("spark.ui.port", "8040")
-        // .set("spark.serializer", "org.apache.spark.serializer.KryoSerializer")
-        // .set("spark.kryo.registrator", "spark.dataframe.CompleteStock")
-        // .set("spark.kryo.registrator", "spark.dataframe.StockName")
-        // .set("spark.kryo.registrator", "spark.dataframe.StockPrice");
-
-        // JavaSparkContext jsc = new JavaSparkContext(session.sparkContext());
-
-        // String path= "<dataset path>/employee";
         
-        // SparkConf conf = new SparkConf().setMaster("local[2]").setAppName("Test");
+        // Spark Session start
         SparkSession spark = SparkSession.builder().appName("BigDataProjectJob2").getOrCreate();
 
         // Import and Map creation
@@ -56,55 +45,29 @@ public class Job2 {
                 snp._2().getYear(), 
                 snp._2().getDay()));
 
-        // JavaPairRDD<String, CompleteStock> completeStocksByTicker = stockNamePrices
-
-        JavaPairRDD<Tuple2<String, Integer>, CompleteStock> completeStocksBySectorYear = completeStocksByTicker
-            .mapToPair(cst -> new Tuple2<>(new Tuple2<>(cst._2().getSector(), cst._2().getYear()), cst._2()));
-
-        // Job2a
-        JavaPairRDD<Tuple2<String, Integer>, Double> meanSectorDateVolumes = completeStocksBySectorYear
-            .mapValues(v -> new Tuple2<>(v.getVolume(), Long.valueOf(1)))
-            .reduceByKey((v1, v2) -> new Tuple2<>(v1._1() + v2._1(), v1._2() + v2._2()))
-            .mapValues(v -> Double.valueOf(v._1()) / v._2());
-
-        // JavaPairRDD<Tuple2<String, Integer>, Double> meanSectorDateVolumes =
-        // volumesBySectorYear
-
-        // JavaPairRDD<Tuple2<String, Integer>, Double> meanSectorDateVolumes =
-        // totalSectorDateVolumes
+        JavaPairRDD<Tuple2<String, Integer>, CompleteStock> completeStocksByTickerYear = completeStocksByTicker
+            .mapToPair(cst -> new Tuple2<>(new Tuple2<>(cst._2().getTicker(), cst._2().getYear()), cst._2()));
 
         // Jon2b
-        JavaPairRDD<Tuple2<String, Integer>, Tuple2<Double, Integer>> dateCloseBySectorYear = completeStocksBySectorYear
+        JavaPairRDD<Tuple2<String, Integer>, Tuple2<Double, Integer>> dateCloseByTickerYear = completeStocksByTickerYear
             .mapValues(cssy -> new Tuple2<>(cssy.getClose(), cssy.getDay()));
 
-        JavaPairRDD<Tuple2<String, Integer>, Tuple2<Tuple2<Double, Integer>, Tuple2<Double, Integer>>> firstLastCloseBySectorYear = dateCloseBySectorYear
+        JavaPairRDD<Tuple2<String, Integer>, Tuple2<Tuple2<Double, Integer>, Tuple2<Double, Integer>>> firstLastCloseByTickerYear = dateCloseByTickerYear
             .mapValues(v -> new Tuple2<>(v, v))
             .reduceByKey((v1, v2) -> new Tuple2<>(minDateClose(v1._1(), v2._1()), maxDateClose(v1._2(), v2._2())));
 
-        // JavaPairRDD<Tuple2<String, Integer>, Tuple2<Double, Integer>> minDateCloseBySectorYear = dateCloseBySectorYear
-        //     .reduceByKey((v1, v2) -> minDateClose(v1, v2));
+        JavaPairRDD<Tuple2<String, Integer>, Double> quotationChangesByTickerYear = firstLastCloseByTickerYear
+            .mapValues(v -> quotationChange(v));
+        
+        // Job2c + join to group by (SECTOR, YEAR), then computing meanVolume, meanQuotationChange, and meanDailyQuotation
+        JavaPairRDD<Tuple2<String, Integer>, Tuple3<Double, Double, Double>> result = quotationChangesByTickerYear
+            .join(completeStocksByTickerYear)
+            .mapToPair(v -> new Tuple2<>(new Tuple2<>(v._2._2.getSector(), v._1._2()), new Tuple4<>(v._2._2.getVolume(), v._2._1(), v._2._2.getClose(), Long.valueOf(1))))
+            .reduceByKey((v1, v2) -> new Tuple4<>(v1._1() + v2._1(), v1._2() + v2._2(), v1._3() + v2._3(), v1._4() + v2._4()))
+            .mapValues(v -> new Tuple3<>(Double.valueOf(v._1()) / v._4(), Double.valueOf(v._2()) / v._4(), Double.valueOf(v._3()) / v._4()));
 
-        // JavaPairRDD<Tuple2<String, Integer>, Tuple2<Double, Integer>> maxDateCloseBySectorYear = dateCloseBySectorYear
-        //     .reduceByKey((v1, v2) -> maxDateClose(v1, v2));
-
-        // JavaPairRDD<Tuple2<String, Integer>, Tuple2<Tuple2<Double, Integer>, Tuple2<Double, Integer>>> joinDateCloseBySectorYear = minDateCloseBySectorYear
-        //     .join(maxDateCloseBySectorYear);
-
-        JavaPairRDD<Tuple2<String, Integer>, Double> meanQuotationChanges = firstLastCloseBySectorYear
-            .mapValues(v -> new Tuple2<>(quotationChange(v), Long.valueOf(1)))
-            .reduceByKey((v1, v2) -> new Tuple2<>(v1._1() + v2._1(), v1._2() + v2._2()))
-            .mapValues(v -> v._1() / v._2());
-
-        // Job2c
-        JavaPairRDD<Tuple2<String, Integer>, Double> meanDailyClose = dateCloseBySectorYear
-            .mapValues(v -> new Tuple2<>(v._1(), Long.valueOf(1)))
-            .reduceByKey((v1, v2) -> new Tuple2<>(v1._1() + v2._1(), v1._2() + v2._2()))
-            .mapValues(v -> v._1() / v._2());
-
-        JavaPairRDD<Tuple2<String, Integer>, Tuple2<Tuple2<Double, Double>, Double>> result = meanSectorDateVolumes
-            .join(meanQuotationChanges).join(meanDailyClose);
-
-        JavaPairRDD<Tuple2<String, Integer>, Tuple2<Tuple2<Double, Double>, Double>> orderedResult = result
+        // Sorting     
+        JavaPairRDD<Tuple2<String, Integer>, Tuple3<Double, Double, Double>> orderedResult = result
             .sortByKey(new SerializableComparator<Tuple2<String, Integer>>(){
                 public int compare(Tuple2<String, Integer> t1, Tuple2<String, Integer> t2) {
                     int cmp = t1._1().compareTo(t2._1());
@@ -115,11 +78,12 @@ public class Job2 {
 
         orderedResult.coalesce(1).saveAsTextFile(args[2]);
 
+        // Spark Session termination
         spark.stop();
 
     }
 
-    // Spark Session termination
+    
     public static Tuple2<Double, Integer> maxDateClose(Tuple2<Double, Integer> t1, Tuple2<Double, Integer> t2) {
         return t1._2() > t2._2() ? t1 : t2;
     }

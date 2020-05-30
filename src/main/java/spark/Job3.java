@@ -55,15 +55,6 @@ public class Job3 {
         JavaPairRDD<Tuple2<String, Integer>, Tuple3<String, Double, Integer>> dateCloseByTickerYear = completeStocksByTickerYear
                 .mapValues(cssy -> new Tuple3<>(cssy.getName(), cssy.getClose(), cssy.getDay()));
 
-        // JavaPairRDD<Tuple2<String, Integer>, Tuple3<String, Double, Integer>> minDateCloseByTickerYear = dateCloseByTickerYear
-        //         .reduceByKey((v1, v2) -> minDateClose3(v1, v2));
-
-        // JavaPairRDD<Tuple2<String, Integer>, Tuple3<String, Double, Integer>> maxDateCloseByTickerYear = dateCloseByTickerYear
-        //         .reduceByKey((v1, v2) -> maxDateClose3(v1, v2));
-
-        // JavaPairRDD<Tuple2<String, Integer>, Tuple2<Tuple3<String, Double, Integer>, Tuple3<String, Double, Integer>>> joinDateCloseByTickerYear = minDateCloseByTickerYear
-        //         .join(maxDateCloseByTickerYear);
-
         JavaPairRDD<Tuple2<String, Integer>, Tuple2<Tuple3<String, Double, Integer>, Tuple3<String, Double, Integer>>>  minMaxDateCloseByTickerYear = 
             dateCloseByTickerYear.mapValues(v -> new Tuple2<>(v, v))
             .reduceByKey((v1, v2) -> new Tuple2<>(minDateClose3(v1._1(), v2._2()), maxDateClose3(v1._1(), v2._2())));
